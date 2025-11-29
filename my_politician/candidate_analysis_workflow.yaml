@@ -1,0 +1,9 @@
+name: Candidate_Analysis_Workflow
+agent_class: SequentialAgent
+description: |
+  This agent orchestrates the analysis of political candidates based on user beliefs.
+  It sequences the Researcher_Agent, Ideology_Matcher_Agent, and Recommender_Agent.
+sub_agents:
+  - config_path: researcher_agent.yaml
+  - config_path: ideology_matcher_agent.yaml
+  - config_path: recommender_agent.yaml
