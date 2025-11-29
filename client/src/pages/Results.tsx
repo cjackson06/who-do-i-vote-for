@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/useToast';
 import { CandidateMatch } from '@/types/questionnaire';
 import { CandidateCard } from '@/components/CandidateCard';
-import { Trophy, RotateCcw, Share2 } from 'lucide-react';
+import { Trophy, RotateCcw } from 'lucide-react';
 
 export function Results() {
   const navigate = useNavigate();
@@ -44,13 +44,6 @@ export function Results() {
     navigate('/');
   };
 
-  const handleShare = () => {
-    toast({
-      title: 'Share Feature',
-      description: 'Sharing functionality would be implemented here',
-    });
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900">
       <div className="container mx-auto px-4 py-16">
@@ -68,15 +61,7 @@ export function Results() {
             </p>
 
             {/* Action Buttons */}
-            <div className="flex justify-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={handleShare}
-                className="rounded-full"
-              >
-                <Share2 className="w-4 h-4 mr-2" />
-                Share Results
-              </Button>
+            <div className="flex justify-center">
               <Button
                 variant="outline"
                 onClick={handleStartOver}
