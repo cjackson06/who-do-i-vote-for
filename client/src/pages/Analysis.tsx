@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { getAnalysisResults } from '@/api/candidates';
+import { analyzeCandidates } from '@/api/candidates';
 import { useToast } from '@/hooks/useToast';
 import { Loader2, Search, Database, TrendingUp } from 'lucide-react';
 
@@ -13,16 +13,19 @@ export function Analysis() {
   const [statusMessage, setStatusMessage] = useState('Analyzing your political views...');
 
   useEffect(() => {
-    const analysisId = sessionStorage.getItem('analysisId');
-    if (!analysisId) {
+    const analysisDataStr = sessionStorage.getItem('analysisData');
+    if (!analysisDataStr) {
       toast({
         title: 'Error',
-        description: 'No analysis found. Please start over.',
+        description: 'No analysis data found. Please start over.',
         variant: 'destructive'
       });
       navigate('/candidates');
       return;
     }
+
+    const analysisData = JSON.parse(analysisDataStr);
+    const { politicalAlignment, candidates } = analysisData;
 
     const statusMessages = [
       { progress: 0, message: 'Analyzing your political views...' },
@@ -42,15 +45,27 @@ export function Analysis() {
       }
     }, 3000);
 
-    const fetchResults = async () => {
+    const performAnalysis = async () => {
       try {
-        await new Promise(resolve => setTimeout(resolve, 15000));
-        const response = await getAnalysisResults(analysisId);
+        console.log('Calling analyzeCandidates API with:', { politicalAlignment, candidates });
+        const response = await analyzeCandidates({ politicalAlignment, candidates });
         console.log('Analysis complete:', response);
-        sessionStorage.setItem('analysisResults', JSON.stringify(response));
+        
+        // Parse the response and extract candidate analysis
+        const text = response[0]?.content?.parts?.[0]?.text || '';
+        console.log('Response text:', text);
+        
+        // Store raw response for Results page to parse
+        sessionStorage.setItem('analysisResponse', JSON.stringify(response));
+        
+        setProgress(100);
+        setStatusMessage('Analysis complete!');
+        
+        // Small delay before navigating
+        await new Promise(resolve => setTimeout(resolve, 500));
         navigate('/results');
       } catch (error) {
-        console.error('Error fetching results:', error);
+        console.error('Error performing analysis:', error);
         toast({
           title: 'Error',
           description: error instanceof Error ? error.message : 'Failed to complete analysis',
@@ -60,7 +75,7 @@ export function Analysis() {
       }
     };
 
-    fetchResults();
+    performAnalysis();
 
     return () => clearInterval(interval);
   }, [navigate, toast]);

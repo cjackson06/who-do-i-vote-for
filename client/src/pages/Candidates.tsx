@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/useToast';
-import { analyzeCandidates } from '@/api/candidates';
+import { analyzeCandidates, createMyPoliticianSession } from '@/api/candidates';
 import { Users, X, Plus, ArrowRight, Loader2, MessageCircle } from 'lucide-react';
 
 export function Candidates() {
@@ -16,14 +16,32 @@ export function Candidates() {
   const [loading, setLoading] = useState(false);
   const [politicalAlignment, setPoliticalAlignment] = useState<string | null>(null);
 
-  // Load political alignment from localStorage
+  // Load political alignment and create my_politician session
   useEffect(() => {
     const alignment = localStorage.getItem('politicalAlignment');
     if (alignment) {
       setPoliticalAlignment(alignment);
       console.log('Loaded political alignment from localStorage');
     }
-  }, []);
+
+    // Create my_politician session if it doesn't exist
+    const existingSessionId = sessionStorage.getItem('myPoliticianSessionId');
+    if (!existingSessionId) {
+      createMyPoliticianSession()
+        .then((response) => {
+          sessionStorage.setItem('myPoliticianSessionId', response.id);
+          console.log('Created my_politician session:', response.id);
+        })
+        .catch((error) => {
+          console.error('Error creating my_politician session:', error);
+          toast({
+            title: 'Session Error',
+            description: 'Failed to initialize session. Please refresh the page.',
+            variant: 'destructive'
+          });
+        });
+    }
+  }, [toast]);
 
   const handleAddCandidate = () => {
     if (!candidateName.trim()) {
@@ -64,10 +82,9 @@ export function Candidates() {
       return;
     }
 
-    const sessionId = sessionStorage.getItem('questionnaireSession');
-    if (!sessionId) {
+    if (!politicalAlignment) {
       toast({
-        title: 'Session Error',
+        title: 'Missing Information',
         description: 'Please complete the questionnaire first',
         variant: 'destructive'
       });
@@ -75,11 +92,26 @@ export function Candidates() {
       return;
     }
 
+    const myPoliticianSessionId = sessionStorage.getItem('myPoliticianSessionId');
+    if (!myPoliticianSessionId) {
+      toast({
+        title: 'Session Error',
+        description: 'Session not initialized. Please refresh the page.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     try {
       setLoading(true);
-      const response = await analyzeCandidates({ sessionId, candidates }) as { analysisId: string };
-      console.log('Analysis started:', response);
-      sessionStorage.setItem('analysisId', response.analysisId);
+      console.log('Starting analysis with:', { politicalAlignment, candidates });
+      
+      // Store data for Analysis page to use
+      sessionStorage.setItem('analysisData', JSON.stringify({
+        politicalAlignment,
+        candidates
+      }));
+      
       navigate('/analysis');
     } catch (error) {
       console.error('Error starting analysis:', error);

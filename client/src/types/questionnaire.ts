@@ -22,7 +22,8 @@ export interface CandidateMatch {
   candidateId: string;
   name: string;
   party: string;
-  matchPercentage: number;
+  matchPercentage?: number;
+  compatibility?: string;
   photo: string;
   summary: string;
   alignment: CandidateAlignment[];

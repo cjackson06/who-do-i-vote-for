@@ -13,11 +13,21 @@ interface CandidateCardProps {
 export function CandidateCard({ candidate, rank }: CandidateCardProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const getMatchColor = (percentage: number) => {
-    if (percentage >= 80) return 'from-green-500 to-emerald-600';
-    if (percentage >= 60) return 'from-blue-500 to-cyan-600';
-    if (percentage >= 40) return 'from-yellow-500 to-orange-600';
-    return 'from-red-500 to-pink-600';
+  const getMatchColor = (percentage?: number, compatibility?: string) => {
+    if (compatibility) {
+      const level = compatibility.toLowerCase();
+      if (level.includes('very high')) return 'from-green-500 to-emerald-600';
+      if (level.includes('high')) return 'from-blue-500 to-cyan-600';
+      if (level.includes('medium')) return 'from-yellow-500 to-orange-600';
+      return 'from-red-500 to-pink-600';
+    }
+    if (percentage !== undefined) {
+      if (percentage >= 80) return 'from-green-500 to-emerald-600';
+      if (percentage >= 60) return 'from-blue-500 to-cyan-600';
+      if (percentage >= 40) return 'from-yellow-500 to-orange-600';
+      return 'from-red-500 to-pink-600';
+    }
+    return 'from-blue-500 to-purple-600';
   };
 
   const getRankBadge = (rank: number) => {
@@ -31,24 +41,15 @@ export function CandidateCard({ candidate, rank }: CandidateCardProps) {
         <div className="space-y-4">
           {/* Header */}
           <div className="flex items-start justify-between">
-            <div className="flex items-start space-x-4 flex-1">
-              {/* Avatar */}
-              <div className="relative flex-shrink-0">
-                <img
-                  src={candidate.photo}
-                  alt={candidate.name}
-                  className="w-20 h-20 rounded-full border-4 border-white dark:border-gray-700 shadow-lg"
-                />
-                <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                  {getRankBadge(rank)}
-                </div>
-              </div>
-
+            <div className="flex items-start flex-1">
               {/* Info */}
               <div className="flex-1">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                  {candidate.name}
-                </h3>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-2xl">{getRankBadge(rank)}</span>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {candidate.name}
+                  </h3>
+                </div>
                 <Badge variant="secondary" className="mb-2">
                   {candidate.party}
                 </Badge>
@@ -58,14 +59,25 @@ export function CandidateCard({ candidate, rank }: CandidateCardProps) {
               </div>
             </div>
 
-            {/* Match Percentage */}
+            {/* Match Display */}
             <div className="flex-shrink-0 ml-4">
-              <div className={`w-24 h-24 rounded-full bg-gradient-to-br ${getMatchColor(candidate.matchPercentage)} flex items-center justify-center shadow-lg`}>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-white">
-                    {candidate.matchPercentage}%
-                  </div>
-                  <div className="text-xs text-white/90">Match</div>
+              <div className={`w-24 h-24 rounded-full bg-gradient-to-br ${getMatchColor(candidate.matchPercentage, candidate.compatibility)} flex items-center justify-center shadow-lg`}>
+                <div className="text-center px-2">
+                  {candidate.compatibility ? (
+                    <>
+                      <div className="text-sm font-bold text-white leading-tight">
+                        {candidate.compatibility}
+                      </div>
+                      <div className="text-xs text-white/90 mt-1">Match</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-3xl font-bold text-white">
+                        {candidate.matchPercentage}%
+                      </div>
+                      <div className="text-xs text-white/90">Match</div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

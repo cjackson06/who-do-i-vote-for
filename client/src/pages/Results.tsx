@@ -13,11 +13,11 @@ export function Results() {
   const [results, setResults] = useState<CandidateMatch[]>([]);
 
   useEffect(() => {
-    const resultsData = sessionStorage.getItem('analysisResults');
-    if (!resultsData) {
+    const analysisResponseStr = sessionStorage.getItem('analysisResponse');
+    if (!analysisResponseStr) {
       toast({
         title: 'No Results Found',
-        description: 'Please complete the questionnaire first',
+        description: 'Please complete the analysis first',
         variant: 'destructive'
       });
       navigate('/');
@@ -25,14 +25,50 @@ export function Results() {
     }
 
     try {
-      const parsed = JSON.parse(resultsData);
-      setResults(parsed.results || []);
-      console.log('Loaded results:', parsed.results);
+      const response = JSON.parse(analysisResponseStr);
+      console.log('Raw analysis response:', response);
+      
+      // Extract text from response
+      const text = response[0]?.content?.parts?.[0]?.text || '';
+      console.log('Response text:', text);
+      
+      if (!text) {
+        throw new Error('No analysis text found in response');
+      }
+      
+      // Remove markdown code block markers
+      const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/);
+      const jsonStr = jsonMatch ? jsonMatch[1] : text;
+      console.log('Extracted JSON string:', jsonStr);
+      
+      // Parse JSON
+      const agentResult = JSON.parse(jsonStr);
+      console.log('Parsed agent result:', agentResult);
+      
+      // Handle both single object and array responses
+      const resultsArray = Array.isArray(agentResult) ? agentResult : [agentResult];
+      
+      // Map to CandidateMatch format
+      const mappedResults: CandidateMatch[] = resultsArray.map((result) => ({
+        candidateId: result.candidate,
+        name: result.candidate,
+        party: result.party,
+        compatibility: result.compatibility,
+        photo: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(result.candidate)}`,
+        summary: result.reason,
+        alignment: [],
+        differences: [],
+        keyPolicies: [],
+        website: '#'
+      }));
+      
+      console.log('Mapped results:', mappedResults);
+      setResults(mappedResults);
     } catch (error) {
       console.error('Error parsing results:', error);
       toast({
         title: 'Error',
-        description: 'Failed to load results',
+        description: 'Failed to parse analysis results',
         variant: 'destructive'
       });
       navigate('/');
