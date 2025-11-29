@@ -8,7 +8,7 @@ import { Question } from '@/types/questionnaire';
 import { Send, Loader2 } from 'lucide-react';
 import { ChatMessage } from '@/components/ChatMessage';
 
-const INTRO_TEXT = "Hello! I'm Political_Profiler, and I'm here to have a conversation with you to understand your political views and the issues that are most important to you. My goal is to build a profile of your political stances, so I'll be asking open-ended questions across a range of topics. There are no right or wrong answers, and I'll maintain a neutral and respectful tone throughout. Feel free to elaborate as much as you like or let me know if you'd prefer to move on to another topic. To begin, what political issues or topics come to mind first when you think about what's important for the country or society today?";
+const INTRO_TEXT = "Hello! I'm here to have a conversation with you to understand your political views and the issues that are most important to you. My goal is to build a profile of your political stances, so I'll be asking open-ended questions across a range of topics. There are no right or wrong answers, and I'll maintain a neutral and respectful tone throughout. Feel free to elaborate as much as you like or let me know if you'd prefer to move on to another topic. To begin, what political issues or topics come to mind first when you think about what's important for the country or society today?";
 
 type ChatEntry = {
   type: 'question' | 'answer';
@@ -24,17 +24,19 @@ export function Questionnaire() {
   const [loading, setLoading] = useState(false);
   const [sessionId] = useState(() => 'session-' + Date.now());
   const [answers, setAnswers] = useState<Array<{ questionId: string; answer: string }>>([]);
-  const [chatHistory, setChatHistory] = useState<ChatEntry[]>([]);
+  const [chatHistory, setChatHistory] = useState<ChatEntry[]>([
+    { type: 'question', content: INTRO_TEXT }
+  ]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const loadInitialQuestion = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await startQuestionnaire();
+      const response = await startQuestionnaire(sessionId);
       setCurrentQuestion(response);
-      setChatHistory([
-        { type: 'question', content: INTRO_TEXT },
+      setChatHistory(prev => [
+        ...prev,
         { type: 'question', content: response.question, questionNumber: response.questionNumber }
       ]);
       console.log('Loaded initial question:', response);

@@ -2,12 +2,17 @@ import api from './api';
 import { Question } from '@/types/questionnaire';
 
 // Description: Get initial questionnaire question
-// Endpoint: GET /api/questionnaire/start
-// Request: {}
+// Endpoint: POST /api/run
+// Request: { appName: string, userId: string, sessionId: string, newMessage: string }
 // Response: { questionId: string, question: string, questionNumber: number, totalQuestions: number }
-export const startQuestionnaire = async (): Promise<Question> => {
+export const startQuestionnaire = async (sessionId: string): Promise<Question> => {
   try {
-    const response = await api.get('/api/questionnaire/start');
+    const response = await api.post('/api/run', {
+      appName: 'Political_Profiler',
+      userId: sessionId,
+      sessionId: sessionId,
+      newMessage: ''
+    });
     return response.data;
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || error.message);
