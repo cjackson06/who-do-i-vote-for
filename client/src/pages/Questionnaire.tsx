@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -35,11 +35,22 @@ export function Questionnaire() {
     const initializeSession = async () => {
       try {
         setLoading(true);
-        const sessionResponse = await createSession();
-        const newSessionId = sessionResponse.id;
-        localStorage.setItem('sessionId', newSessionId);
-        setSessionId(newSessionId);
-        console.log('Session created:', newSessionId);
+        
+        // Check if a sessionId already exists in localStorage
+        const existingSessionId = localStorage.getItem('sessionId');
+        
+        if (existingSessionId) {
+          // Use existing session
+          setSessionId(existingSessionId);
+          console.log('Using existing session:', existingSessionId);
+        } else {
+          // Create new session only if one doesn't exist
+          const sessionResponse = await createSession();
+          const newSessionId = sessionResponse.id;
+          localStorage.setItem('sessionId', newSessionId);
+          setSessionId(newSessionId);
+          console.log('Session created:', newSessionId);
+        }
       } catch (error: any) {
         console.error('Error creating session:', error);
         toast({
@@ -55,35 +66,6 @@ export function Questionnaire() {
     initializeSession();
   }, [toast]);
 
-  const loadInitialQuestion = useCallback(async () => {
-    if (!sessionId) return;
-    
-    try {
-      setLoading(true);
-      const response = await startQuestionnaire();
-      setCurrentQuestion(response);
-      setChatHistory(prev => [
-        ...prev,
-        { type: 'question', content: response.question, questionNumber: response.questionNumber }
-      ]);
-      console.log('Loaded initial question:', response);
-    } catch (error: any) {
-      console.error('Error loading question:', error);
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to load question',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [sessionId, toast]);
-
-  useEffect(() => {
-    if (sessionId) {
-      loadInitialQuestion();
-    }
-  }, [sessionId, loadInitialQuestion]);
 
   // Auto-scroll to bottom when chat history changes
   useEffect(() => {
@@ -111,15 +93,6 @@ export function Questionnaire() {
       return;
     }
 
-    if (!currentQuestion) {
-      toast({
-        title: 'Question Not Ready',
-        description: 'Please wait for the first question to load',
-        variant: 'destructive'
-      });
-      return;
-    }
-
     try {
       setLoading(true);
 
@@ -129,14 +102,22 @@ export function Questionnaire() {
         content: answer
       }]);
 
-      const newAnswers = [...answers, { questionId: currentQuestion.questionId, answer }];
-      setAnswers(newAnswers);
+      let response;
 
-      const response = await submitAnswer({
-        answer
-      });
+      // If this is the first answer (responding to intro text), start the questionnaire
+      if (!currentQuestion) {
+        response = await startQuestionnaire();
+        console.log('Started questionnaire with first answer, received:', response);
+      } else {
+        // Otherwise, submit the answer normally
+        const newAnswers = [...answers, { questionId: currentQuestion.questionId, answer }];
+        setAnswers(newAnswers);
 
-      console.log('Submitted answer, received:', response);
+        response = await submitAnswer({
+          answer
+        });
+        console.log('Submitted answer, received:', response);
+      }
 
       // Clear the input
       setAnswer('');

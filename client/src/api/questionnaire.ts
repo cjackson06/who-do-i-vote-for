@@ -18,7 +18,7 @@ export const createSession = async (): Promise<{ id: string }> => {
 // Description: Get initial questionnaire question
 // Endpoint: POST /run
 // Request: { app_name: string, user_id: string, session_id: string, new_message: { parts: [{ text: string }], role: string } }
-// Response: { questionId: string, question: string, questionNumber: number, totalQuestions: number }
+// Response: Array with nested structure containing parts[0].text
 export const startQuestionnaire = async (): Promise<Question> => {
   try {
     const sessionId = localStorage.getItem('sessionId');
@@ -39,7 +39,17 @@ export const startQuestionnaire = async (): Promise<Question> => {
         role: 'user'
       }
     });
-    return response.data;
+    
+    // Extract the text from the nested response structure
+    const responseData = response.data;
+    const questionText = responseData[0]?.content?.parts?.[0]?.text || '';
+    
+    return {
+      questionId: '1',
+      question: questionText,
+      questionNumber: 1,
+      totalQuestions: 10
+    };
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || error.message || 'Failed to start questionnaire');
   }
@@ -48,7 +58,7 @@ export const startQuestionnaire = async (): Promise<Question> => {
 // Description: Submit answer and get next question
 // Endpoint: POST /run
 // Request: { app_name: string, user_id: string, session_id: string, new_message: { parts: [{ text: string }], role: string } }
-// Response: { questionId: string, question: string, questionNumber: number, totalQuestions: number, isComplete: boolean }
+// Response: Array with nested structure containing parts[0].text
 export const submitAnswer = async (
   data: { answer: string }
 ): Promise<Question & { isComplete: boolean }> => {
@@ -71,7 +81,23 @@ export const submitAnswer = async (
         role: 'user'
       }
     });
-    return response.data;
+    
+    // Extract the text from the nested response structure
+    const responseData = response.data;
+    const questionText = responseData[0]?.content?.parts?.[0]?.text || '';
+    
+    // Check if questionnaire is complete (you may need to adjust this logic based on your backend)
+    const isComplete = questionText.toLowerCase().includes('complete') || 
+                      questionText.toLowerCase().includes('finished') ||
+                      !questionText;
+    
+    return {
+      questionId: String(Date.now()),
+      question: questionText,
+      questionNumber: 1, // You may need to track this separately
+      totalQuestions: 10,
+      isComplete
+    };
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || error.message || 'Failed to submit answer');
   }
