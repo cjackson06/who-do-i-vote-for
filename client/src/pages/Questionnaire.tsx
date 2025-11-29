@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/useToast';
-import { startQuestionnaire, submitAnswer } from '@/api/questionnaire';
+import { createSession, startQuestionnaire, submitAnswer } from '@/api/questionnaire';
 import { Question } from '@/types/questionnaire';
 import { Send, Loader2 } from 'lucide-react';
 import { ChatMessage } from '@/components/ChatMessage';
@@ -22,7 +22,7 @@ export function Questionnaire() {
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
-  const [sessionId] = useState(() => 'session-' + Date.now());
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Array<{ questionId: string; answer: string }>>([]);
   const [chatHistory, setChatHistory] = useState<ChatEntry[]>([
     { type: 'question', content: INTRO_TEXT }
@@ -30,10 +30,37 @@ export function Questionnaire() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Create session on mount
+  useEffect(() => {
+    const initializeSession = async () => {
+      try {
+        setLoading(true);
+        const sessionResponse = await createSession();
+        const newSessionId = sessionResponse.id;
+        localStorage.setItem('sessionId', newSessionId);
+        setSessionId(newSessionId);
+        console.log('Session created:', newSessionId);
+      } catch (error: any) {
+        console.error('Error creating session:', error);
+        toast({
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'Failed to create session',
+          variant: 'destructive'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeSession();
+  }, [toast]);
+
   const loadInitialQuestion = useCallback(async () => {
+    if (!sessionId) return;
+    
     try {
       setLoading(true);
-      const response = await startQuestionnaire(sessionId);
+      const response = await startQuestionnaire();
       setCurrentQuestion(response);
       setChatHistory(prev => [
         ...prev,
@@ -50,11 +77,13 @@ export function Questionnaire() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [sessionId, toast]);
 
   useEffect(() => {
-    loadInitialQuestion();
-  }, [loadInitialQuestion]);
+    if (sessionId) {
+      loadInitialQuestion();
+    }
+  }, [sessionId, loadInitialQuestion]);
 
   // Auto-scroll to bottom when chat history changes
   useEffect(() => {
@@ -73,7 +102,23 @@ export function Questionnaire() {
       return;
     }
 
-    if (!currentQuestion) return;
+    if (!sessionId) {
+      toast({
+        title: 'Session Not Ready',
+        description: 'Please wait for the session to initialize',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!currentQuestion) {
+      toast({
+        title: 'Question Not Ready',
+        description: 'Please wait for the first question to load',
+        variant: 'destructive'
+      });
+      return;
+    }
 
     try {
       setLoading(true);
@@ -88,9 +133,7 @@ export function Questionnaire() {
       setAnswers(newAnswers);
 
       const response = await submitAnswer({
-        questionId: currentQuestion.questionId,
-        answer,
-        sessionId
+        answer
       });
 
       console.log('Submitted answer, received:', response);
