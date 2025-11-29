@@ -8,6 +8,8 @@ import { Question } from '@/types/questionnaire';
 import { Send, Loader2 } from 'lucide-react';
 import { ChatMessage } from '@/components/ChatMessage';
 
+const INTRO_TEXT = "Hello! I'm Political_Profiler, and I'm here to have a conversation with you to understand your political views and the issues that are most important to you. My goal is to build a profile of your political stances, so I'll be asking open-ended questions across a range of topics. There are no right or wrong answers, and I'll maintain a neutral and respectful tone throughout. Feel free to elaborate as much as you like or let me know if you'd prefer to move on to another topic. To begin, what political issues or topics come to mind first when you think about what's important for the country or society today?";
+
 type ChatEntry = {
   type: 'question' | 'answer';
   content: string;
@@ -29,15 +31,14 @@ export function Questionnaire() {
   const loadInitialQuestion = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await startQuestionnaire() as Question;
+      const response = await startQuestionnaire();
       setCurrentQuestion(response);
-      setChatHistory([{
-        type: 'question',
-        content: response.question,
-        questionNumber: response.questionNumber
-      }]);
+      setChatHistory([
+        { type: 'question', content: INTRO_TEXT },
+        { type: 'question', content: response.question, questionNumber: response.questionNumber }
+      ]);
       console.log('Loaded initial question:', response);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading question:', error);
       toast({
         title: 'Error',
@@ -108,7 +109,7 @@ export function Questionnaire() {
         }]);
         setCurrentQuestion(response);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting answer:', error);
       toast({
         title: 'Error',
@@ -116,7 +117,7 @@ export function Questionnaire() {
         variant: 'destructive'
       });
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
