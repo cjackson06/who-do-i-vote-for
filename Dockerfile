@@ -17,4 +17,4 @@ RUN uv sync
 COPY my_politician/ my_politician/
 COPY political_profiler/ political_profiler/
 
-CMD ["uv", "run", "adk", "api_server", "--allow_origins", "*"]
+CMD ["uv", "run", "adk", "api_server","--host", "0.0.0.0", "--allow_origins", "*"]
