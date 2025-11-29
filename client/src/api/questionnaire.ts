@@ -19,7 +19,7 @@ export const createSession = async (): Promise<{ id: string }> => {
 // Endpoint: POST /run
 // Request: { app_name: string, user_id: string, session_id: string, new_message: { parts: [{ text: string }], role: string } }
 // Response: Array with nested structure containing parts[0].text
-export const startQuestionnaire = async (): Promise<Question> => {
+export const startQuestionnaire = async (answer: string): Promise<Question> => {
   try {
     const sessionId = localStorage.getItem('sessionId');
     if (!sessionId) {
@@ -33,7 +33,7 @@ export const startQuestionnaire = async (): Promise<Question> => {
       new_message: {
         parts: [
           {
-            text: ''
+            text: answer
           }
         ],
         role: 'user'

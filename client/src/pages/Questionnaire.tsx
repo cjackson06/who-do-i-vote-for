@@ -106,7 +106,7 @@ export function Questionnaire() {
 
       // If this is the first answer (responding to intro text), start the questionnaire
       if (!currentQuestion) {
-        response = await startQuestionnaire();
+        response = await startQuestionnaire(answer);
         console.log('Started questionnaire with first answer, received:', response);
       } else {
         // Otherwise, submit the answer normally
