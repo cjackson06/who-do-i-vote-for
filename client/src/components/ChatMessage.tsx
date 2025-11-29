@@ -5,16 +5,19 @@ interface ChatMessageProps {
   content: string;
   questionNumber?: number;
   animate?: boolean;
+  slideOut?: boolean;
 }
 
-export function ChatMessage({ type, content, questionNumber, animate = false }: ChatMessageProps) {
+export function ChatMessage({ type, content, questionNumber, animate = false, slideOut = false }: ChatMessageProps) {
   const isQuestion = type === 'question';
 
   return (
     <div
       className={`flex gap-3 mb-4 ${
         isQuestion ? 'justify-start' : 'justify-end'
-      } ${animate ? 'animate-in fade-in slide-in-from-bottom-4 duration-500' : ''}`}
+      } ${animate ? 'animate-in fade-in slide-in-from-bottom-4 duration-500' : ''} ${
+        slideOut ? 'animate-[slideOutLeft_0.5s_ease-in-out_forwards]' : ''
+      }`}
     >
       {isQuestion && (
         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">

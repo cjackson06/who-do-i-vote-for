@@ -27,6 +27,9 @@ export function Questionnaire() {
   const [chatHistory, setChatHistory] = useState<ChatEntry[]>([
     { type: 'question', content: INTRO_TEXT }
   ]);
+  const [messageCount, setMessageCount] = useState(1); // Start with 1 for intro message
+  const [showNextButton, setShowNextButton] = useState(false);
+  const [shouldSlideOut, setShouldSlideOut] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -122,6 +125,10 @@ export function Questionnaire() {
       // Clear the input
       setAnswer('');
 
+      // Increment message count (add 2: 1 for user's answer, 1 for AI's question)
+      const newMessageCount = messageCount + 2;
+      setMessageCount(newMessageCount);
+
       if (response.isComplete) {
         // Store session data for next screen
         sessionStorage.setItem('questionnaireSession', sessionId);
@@ -134,6 +141,20 @@ export function Questionnaire() {
           questionNumber: response.questionNumber
         }]);
         setCurrentQuestion(response);
+
+        // Check if we should show the Next button
+        const endsWithConclusion = response.question.toLowerCase().includes('this concludes our conversation');
+        const hasReached15Messages = newMessageCount >= 15;
+
+        if (endsWithConclusion || hasReached15Messages) {
+          // Save the last AI message to localStorage
+          localStorage.setItem('politicalAlignment', response.question);
+          
+          // Show Next button after giving time to read the message (no slide-out)
+          setTimeout(() => {
+            setShowNextButton(true);
+          }, 6000); // 6 seconds to read the message
+        }
       }
     } catch (error: any) {
       console.error('Error submitting answer:', error);
@@ -180,7 +201,8 @@ export function Questionnaire() {
                   type={entry.type}
                   content={entry.content}
                   questionNumber={entry.questionNumber}
-                  animate={index === chatHistory.length - 1}
+                  animate={index === chatHistory.length - 1 && !shouldSlideOut}
+                  slideOut={shouldSlideOut && index === chatHistory.length - 1 && entry.type === 'question'}
                 />
               ))}
 
@@ -204,38 +226,50 @@ export function Questionnaire() {
         </div>
       </div>
 
-      {/* Input Area - Fixed at bottom */}
+      {/* Input Area or Next Button - Fixed at bottom */}
       <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg py-4 px-4">
         <div className="container mx-auto max-w-4xl">
-          <div className="flex gap-3 items-end">
-            <div className="flex-1">
-              <Textarea
-                ref={textareaRef}
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder="Type your answer... (Press Enter to send, Shift+Enter for new line)"
-                className="min-h-[60px] max-h-[150px] text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 resize-none rounded-2xl"
-                disabled={loading}
-                rows={2}
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 px-3">
-                Share your thoughts and perspectives. There are no right or wrong answers.
-              </p>
+          {showNextButton ? (
+            <div className="flex justify-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <Button
+                size="lg"
+                onClick={() => navigate('/candidates')}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-12 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                Next
+              </Button>
             </div>
-            <Button
-              size="lg"
-              onClick={handleSubmit}
-              disabled={loading || !answer.trim()}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 h-[60px] w-[60px] p-0"
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Send className="w-5 h-5" />
-              )}
-            </Button>
-          </div>
+          ) : (
+            <div className="flex gap-3 items-end">
+              <div className="flex-1">
+                <Textarea
+                  ref={textareaRef}
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  placeholder="Type your answer... (Press Enter to send, Shift+Enter for new line)"
+                  className="min-h-[60px] max-h-[150px] text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 resize-none rounded-2xl"
+                  disabled={loading}
+                  rows={2}
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 px-3">
+                  Share your thoughts and perspectives. There are no right or wrong answers.
+                </p>
+              </div>
+              <Button
+                size="lg"
+                onClick={handleSubmit}
+                disabled={loading || !answer.trim()}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 h-[60px] w-[60px] p-0"
+              >
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

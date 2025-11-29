@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/useToast';
 import { analyzeCandidates } from '@/api/candidates';
-import { Users, X, Plus, ArrowRight, Loader2 } from 'lucide-react';
+import { Users, X, Plus, ArrowRight, Loader2, MessageCircle } from 'lucide-react';
 
 export function Candidates() {
   const navigate = useNavigate();
@@ -14,6 +14,16 @@ export function Candidates() {
   const [candidateName, setCandidateName] = useState('');
   const [candidates, setCandidates] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [politicalAlignment, setPoliticalAlignment] = useState<string | null>(null);
+
+  // Load political alignment from localStorage
+  useEffect(() => {
+    const alignment = localStorage.getItem('politicalAlignment');
+    if (alignment) {
+      setPoliticalAlignment(alignment);
+      console.log('Loaded political alignment from localStorage');
+    }
+  }, []);
 
   const handleAddCandidate = () => {
     if (!candidateName.trim()) {
@@ -105,6 +115,27 @@ export function Candidates() {
               Add the candidates you're thinking about voting for
             </p>
           </div>
+
+          {/* Political Alignment Summary */}
+          {politicalAlignment && (
+            <Card className="border-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 backdrop-blur-lg shadow-xl mb-6 animate-in fade-in slide-in-from-top-4 duration-500 delay-150">
+              <CardContent className="p-6">
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+                    <MessageCircle className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2">
+                      Your Political Profile
+                    </h3>
+                    <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+                      {politicalAlignment}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Input Card */}
           <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg shadow-2xl mb-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

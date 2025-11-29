@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -66,4 +77,3 @@
     @apply bg-background text-foreground;
   }
 }
-
