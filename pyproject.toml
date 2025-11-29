@@ -1,0 +1,21 @@
+[project]
+name = "kaggle-agentic-ai"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "google-adk>=1.18.0",
+    "httpx>=0.28.1",
+    "ollama>=0.6.1",
+    "python-dotenv>=1.2.1",
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.11.0",
+    "flake8>=7.3.0",
+    "ipykernel>=7.1.0",
+    "pytest>=9.0.1",
+    "ty>=0.0.1a26",
+]

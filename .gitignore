@@ -9,7 +9,7 @@ archive/
 *.db
 *.ipynb 
 node_modules/*
-
+*.env
 
 
 
