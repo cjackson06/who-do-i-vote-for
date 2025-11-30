@@ -1,4 +1,4 @@
-# Kaggle Agentic AI - Political Candidate Recommendation System
+# Political Candidate Recommendation System
 
 A full-stack application that uses AI agents to help users make informed voting decisions by analyzing political candidates against their personal beliefs and values.
 
@@ -39,8 +39,8 @@ A full-stack application that uses AI agents to help users make informed voting 
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/cjackson06/kaggle-agentic-ai.git
-cd kaggle-agentic-ai
+git clone https://github.com/cjackson06/who-do-i-vote-for.git
+cd who-do-i-vote-for
 ```
 
 2. Create a `.env` file in the root directory:
@@ -106,7 +106,7 @@ npm run dev
 ## 📁 Project Structure
 
 ```
-kaggle-agentic-ai/
+who-do-i-vote-for/
 ├── client/                    # Frontend React application
 │   ├── src/
 │   │   ├── components/       # Reusable UI components
@@ -169,7 +169,7 @@ cd client && npm run lint
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 📬 Contact
+## Contact
 
 For questions or feedback, please open an issue on GitHub or contact the maintainers.
 
