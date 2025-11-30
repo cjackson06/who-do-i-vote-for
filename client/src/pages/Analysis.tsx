@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -11,8 +11,12 @@ export function Analysis() {
   const { toast } = useToast();
   const [progress, setProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState('Analyzing your political views...');
+  const hasAnalyzed = useRef(false);
 
   useEffect(() => {
+    if (hasAnalyzed.current) return;
+    hasAnalyzed.current = true;
+    
     const analysisDataStr = sessionStorage.getItem('analysisData');
     if (!analysisDataStr) {
       toast({
