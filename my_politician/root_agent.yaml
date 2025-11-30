@@ -13,14 +13,14 @@ instruction: |
     "candidate": "candidate_name",
     "party": "political_party",
     "reason": "reason_for_voting_for_candidate",
-    "compatibility": "compatibility_score",
+    "compatibility": "Should be one of [Very High, High, Medium, Low, Very Low]",
     "expanded_reason": "expanded_reason_for_voting_for_candidate"
   },
   {
     "candidate": "candidate_name",
     "party": "political_party",
     "reason": "reason_for_voting_for_candidate",
-    "compatibility": "compatibility_score",
+    "compatibility": "Should be one of [Very High, High, Medium, Low, Very Low]",
     "expanded_reason": "expanded_reason_for_voting_for_candidate"
   }
   ]

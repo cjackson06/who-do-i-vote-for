@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CandidateMatch } from '@/types/questionnaire';
-import { ChevronDown, ChevronUp, ExternalLink, CheckCircle, XCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, Info } from 'lucide-react';
 
 interface CandidateCardProps {
   candidate: CandidateMatch;
@@ -17,15 +17,15 @@ export function CandidateCard({ candidate, rank }: CandidateCardProps) {
     if (compatibility) {
       const level = compatibility.toLowerCase();
       // Check for positive compatibility indicators
-      if (level.includes('alignment') || level.includes('very high') || level.includes('high')) {
+      if (level.includes('high')) {
         return 'from-green-500 to-emerald-600';
       }
       // Check for negative compatibility indicators
-      if (level.includes('dis') || level.includes('low') || level.includes('poor')) {
+      if (level.includes('low')) {
         return 'from-red-500 to-pink-600';
       }
       // Medium/neutral stays orange/yellow
-      if (level.includes('medium') || level.includes('moderate')) {
+      if (level.includes('medium')) {
         return 'from-yellow-500 to-orange-600';
       }
       // Default fallback
@@ -112,91 +112,21 @@ export function CandidateCard({ candidate, rank }: CandidateCardProps) {
           {/* Expanded Content */}
           {expanded && (
             <div className="space-y-6 pt-4 border-t border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-2 duration-300">
-              {/* Areas of Alignment */}
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                  <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
-                  Areas of Alignment
-                </h4>
-                <div className="space-y-3">
-                  {candidate.alignment.map((item, index) => (
-                    <div
-                      key={index}
-                      className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"
-                    >
-                      <div className="font-medium text-gray-900 dark:text-white mb-1">
-                        {item.issue}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
-                        <div>
-                          <span className="font-medium">Your view:</span> {item.userStance}
-                        </div>
-                        <div>
-                          <span className="font-medium">Candidate:</span> {item.candidateStance}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Areas of Difference */}
-              {candidate.differences.length > 0 && (
+              {/* Detailed Match Analysis */}
+              {candidate.expanded_reason && (
                 <div>
                   <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                    <XCircle className="w-5 h-5 mr-2 text-red-600" />
-                    Areas of Difference
+                    <Info className="w-5 h-5 mr-2 text-blue-600" />
+                    Detailed Match Analysis
                   </h4>
-                  <div className="space-y-3">
-                    {candidate.differences.map((item, index) => (
-                      <div
-                        key={index}
-                        className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
-                      >
-                        <div className="font-medium text-gray-900 dark:text-white mb-1">
-                          {item.issue}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
-                          <div>
-                            <span className="font-medium">Your view:</span> {item.userStance}
-                          </div>
-                          <div>
-                            <span className="font-medium">Candidate:</span> {item.candidateStance}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                      {candidate.expanded_reason}
+                    </p>
                   </div>
                 </div>
               )}
 
-              {/* Key Policy Positions */}
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                  Key Policy Positions
-                </h4>
-                <ul className="space-y-2">
-                  {candidate.keyPolicies.map((policy, index) => (
-                    <li
-                      key={index}
-                      className="flex items-start text-gray-700 dark:text-gray-300"
-                    >
-                      <span className="mr-2 text-purple-600">•</span>
-                      {policy}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Learn More Button */}
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => window.open(candidate.website, '_blank')}
-              >
-                Learn More
-                <ExternalLink className="w-4 h-4 ml-2" />
-              </Button>
             </div>
           )}
         </div>

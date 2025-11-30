@@ -54,12 +54,8 @@ export function Results() {
         name: result.candidate,
         party: result.party,
         compatibility: result.compatibility,
-        photo: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(result.candidate)}`,
         summary: result.reason,
-        alignment: [],
-        differences: [],
-        keyPolicies: [],
-        website: '#'
+        expanded_reason: result.expanded_reason,
       }));
       setResults(mappedResults);
     } catch (error) {

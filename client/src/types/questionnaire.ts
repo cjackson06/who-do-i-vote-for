@@ -24,10 +24,6 @@ export interface CandidateMatch {
   party: string;
   matchPercentage?: number;
   compatibility?: string;
-  photo: string;
   summary: string;
-  alignment: CandidateAlignment[];
-  differences: CandidateAlignment[];
-  keyPolicies: string[];
-  website: string;
+  expanded_reason?: string;
 }
