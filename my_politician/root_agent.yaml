@@ -14,12 +14,14 @@ instruction: |
     "party": "political_party",
     "reason": "reason_for_voting_for_candidate",
     "compatibility": "compatibility_score",
+    "expanded_reason": "expanded_reason_for_voting_for_candidate"
   },
   {
     "candidate": "candidate_name",
     "party": "political_party",
     "reason": "reason_for_voting_for_candidate",
     "compatibility": "compatibility_score",
+    "expanded_reason": "expanded_reason_for_voting_for_candidate"
   }
   ]
   ```
