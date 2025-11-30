@@ -61,8 +61,6 @@ export function Results() {
         keyPolicies: [],
         website: '#'
       }));
-      
-      console.log('Mapped results:', mappedResults);
       setResults(mappedResults);
     } catch (error) {
       console.error('Error parsing results:', error);
