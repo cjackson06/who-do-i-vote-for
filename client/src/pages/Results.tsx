@@ -66,7 +66,7 @@ export function Results() {
 
   const handleStartOver = () => {
     sessionStorage.clear();
-    navigate('/');
+    navigate('/candidates');
   };
 
   return (
