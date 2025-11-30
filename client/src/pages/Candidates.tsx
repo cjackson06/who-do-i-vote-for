@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/useToast';
 import { analyzeCandidates, createMyPoliticianSession } from '@/api/candidates';
 import { Users, X, Plus, ArrowRight, Loader2, MessageCircle } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export function Candidates() {
   const navigate = useNavigate();
@@ -160,9 +162,38 @@ export function Candidates() {
                     <h3 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2">
                       Your Political Profile
                     </h3>
-                    <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-                      {politicalAlignment}
-                    </p>
+                    <div className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 prose prose-sm max-w-none dark:prose-invert">
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                          ul: ({node, ...props}) => <ul className="list-disc list-inside mb-2" {...props} />,
+                          ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-2" {...props} />,
+                          li: ({node, ...props}) => <li className="mb-1" {...props} />,
+                          code: ({node, className, children, ...props}) => {
+                            const inline = !className;
+                            return inline ? (
+                              <code className="bg-black bg-opacity-10 dark:bg-white dark:bg-opacity-10 px-1 py-0.5 rounded text-xs" {...props}>
+                                {children}
+                              </code>
+                            ) : (
+                              <code className={`block bg-black bg-opacity-10 dark:bg-white dark:bg-opacity-10 p-2 rounded text-xs overflow-x-auto ${className}`} {...props}>
+                                {children}
+                              </code>
+                            );
+                          },
+                          strong: ({node, ...props}) => <strong className="font-bold" {...props} />,
+                          em: ({node, ...props}) => <em className="italic" {...props} />,
+                          a: ({node, ...props}) => <a className="underline hover:no-underline" {...props} />,
+                          h1: ({node, ...props}) => <h1 className="text-lg font-bold mb-2" {...props} />,
+                          h2: ({node, ...props}) => <h2 className="text-base font-bold mb-2" {...props} />,
+                          h3: ({node, ...props}) => <h3 className="text-sm font-bold mb-1" {...props} />,
+                          blockquote: ({node, ...props}) => <blockquote className="border-l-2 border-current pl-2 italic" {...props} />,
+                        }}
+                      >
+                        {politicalAlignment}
+                      </ReactMarkdown>
+                    </div>
                   </div>
                 </div>
               </CardContent>
