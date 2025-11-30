@@ -27,7 +27,6 @@ export function Questionnaire() {
   const [chatHistory, setChatHistory] = useState<ChatEntry[]>([
     { type: 'question', content: INTRO_TEXT }
   ]);
-  const [messageCount, setMessageCount] = useState(1); // Start with 1 for intro message
   const [showNextButton, setShowNextButton] = useState(false);
   const [shouldSlideOut, setShouldSlideOut] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -40,19 +39,17 @@ export function Questionnaire() {
         setLoading(true);
         
         // Check if a sessionId already exists in localStorage
-        const existingSessionId = localStorage.getItem('sessionId');
+        const existingSessionId = sessionStorage.getItem('sessionId');
         
         if (existingSessionId) {
           // Use existing session
           setSessionId(existingSessionId);
-          console.log('Using existing session:', existingSessionId);
         } else {
           // Create new session only if one doesn't exist
           const sessionResponse = await createSession();
           const newSessionId = sessionResponse.id;
-          localStorage.setItem('sessionId', newSessionId);
+          sessionStorage.setItem('sessionId', newSessionId);
           setSessionId(newSessionId);
-          console.log('Session created:', newSessionId);
         }
       } catch (error: any) {
         console.error('Error creating session:', error);
@@ -125,10 +122,6 @@ export function Questionnaire() {
       // Clear the input
       setAnswer('');
 
-      // Increment message count (add 2: 1 for user's answer, 1 for AI's question)
-      const newMessageCount = messageCount + 2;
-      setMessageCount(newMessageCount);
-
       if (response.isComplete) {
         // Store session data for next screen
         sessionStorage.setItem('questionnaireSession', sessionId);
@@ -144,9 +137,8 @@ export function Questionnaire() {
 
         // Check if we should show the Next button
         const endsWithConclusion = response.question.toLowerCase().includes('this concludes our conversation');
-        const hasReached15Messages = newMessageCount >= 15;
 
-        if (endsWithConclusion || hasReached15Messages) {
+        if (endsWithConclusion) {
           // Save the last AI message to localStorage
           localStorage.setItem('politicalAlignment', response.question);
           

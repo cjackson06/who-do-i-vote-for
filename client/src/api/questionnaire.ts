@@ -21,7 +21,7 @@ export const createSession = async (): Promise<{ id: string }> => {
 // Response: Array with nested structure containing parts[0].text
 export const startQuestionnaire = async (answer: string): Promise<Question> => {
   try {
-    const sessionId = localStorage.getItem('sessionId');
+    const sessionId = sessionStorage.getItem('sessionId');
     if (!sessionId) {
       throw new Error('No session ID found. Please refresh the page.');
     }
@@ -63,7 +63,7 @@ export const submitAnswer = async (
   data: { answer: string }
 ): Promise<Question & { isComplete: boolean }> => {
   try {
-    const sessionId = localStorage.getItem('sessionId');
+    const sessionId = sessionStorage.getItem('sessionId');
     if (!sessionId) {
       throw new Error('No session ID found. Please refresh the page.');
     }
