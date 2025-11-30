@@ -16,10 +16,20 @@ export function CandidateCard({ candidate, rank }: CandidateCardProps) {
   const getMatchColor = (percentage?: number, compatibility?: string) => {
     if (compatibility) {
       const level = compatibility.toLowerCase();
-      if (level.includes('very high')) return 'from-green-500 to-emerald-600';
-      if (level.includes('high')) return 'from-blue-500 to-cyan-600';
-      if (level.includes('medium')) return 'from-yellow-500 to-orange-600';
-      return 'from-red-500 to-pink-600';
+      // Check for positive compatibility indicators
+      if (level.includes('alignment') || level.includes('very high') || level.includes('high')) {
+        return 'from-green-500 to-emerald-600';
+      }
+      // Check for negative compatibility indicators
+      if (level.includes('dis') || level.includes('low') || level.includes('poor')) {
+        return 'from-red-500 to-pink-600';
+      }
+      // Medium/neutral stays orange/yellow
+      if (level.includes('medium') || level.includes('moderate')) {
+        return 'from-yellow-500 to-orange-600';
+      }
+      // Default fallback
+      return 'from-blue-500 to-cyan-600';
     }
     if (percentage !== undefined) {
       if (percentage >= 80) return 'from-green-500 to-emerald-600';
