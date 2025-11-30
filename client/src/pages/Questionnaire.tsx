@@ -107,7 +107,6 @@ export function Questionnaire() {
       // If this is the first answer (responding to intro text), start the questionnaire
       if (!currentQuestion) {
         response = await startQuestionnaire(answer);
-        console.log('Started questionnaire with first answer, received:', response);
       } else {
         // Otherwise, submit the answer normally
         const newAnswers = [...answers, { questionId: currentQuestion.questionId, answer }];
@@ -116,7 +115,6 @@ export function Questionnaire() {
         response = await submitAnswer({
           answer
         });
-        console.log('Submitted answer, received:', response);
       }
 
       // Clear the input

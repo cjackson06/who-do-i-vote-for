@@ -40,20 +40,13 @@ export function Analysis() {
       if (currentIndex < statusMessages.length) {
         setProgress(statusMessages[currentIndex].progress);
         setStatusMessage(statusMessages[currentIndex].message);
-        console.log('Analysis progress:', statusMessages[currentIndex]);
         currentIndex++;
       }
-    }, 3000);
+    }, 7000);
 
     const performAnalysis = async () => {
       try {
-        console.log('Calling analyzeCandidates API with:', { politicalAlignment, candidates });
         const response = await analyzeCandidates({ politicalAlignment, candidates });
-        console.log('Analysis complete:', response);
-        
-        // Parse the response and extract candidate analysis
-        const text = response[0]?.content?.parts?.[0]?.text || '';
-        console.log('Response text:', text);
         
         // Store raw response for Results page to parse
         sessionStorage.setItem('analysisResponse', JSON.stringify(response));
@@ -61,7 +54,6 @@ export function Analysis() {
         setProgress(100);
         setStatusMessage('Analysis complete!');
         
-        // Small delay before navigating
         await new Promise(resolve => setTimeout(resolve, 500));
         navigate('/results');
       } catch (error) {

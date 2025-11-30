@@ -60,7 +60,7 @@ export function Register() {
       })
       navigate("/login")
     } catch (error) {
-      console.log("Register error:", error)
+      console.error("Register error:", error)
       toast({
         variant: "destructive",
         title: "Error",

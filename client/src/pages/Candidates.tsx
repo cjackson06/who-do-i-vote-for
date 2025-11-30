@@ -23,7 +23,6 @@ export function Candidates() {
     const alignment = localStorage.getItem('politicalAlignment');
     if (alignment) {
       setPoliticalAlignment(alignment);
-      console.log('Loaded political alignment from localStorage');
     }
 
     // Create my_politician session if it doesn't exist
@@ -32,7 +31,6 @@ export function Candidates() {
       createMyPoliticianSession()
         .then((response) => {
           sessionStorage.setItem('myPoliticianSessionId', response.id);
-          console.log('Created my_politician session:', response.id);
         })
         .catch((error) => {
           console.error('Error creating my_politician session:', error);
@@ -66,12 +64,10 @@ export function Candidates() {
 
     setCandidates([...candidates, candidateName.trim()]);
     setCandidateName('');
-    console.log('Added candidate:', candidateName.trim());
   };
 
   const handleRemoveCandidate = (candidate: string) => {
     setCandidates(candidates.filter(c => c !== candidate));
-    console.log('Removed candidate:', candidate);
   };
 
   const handleAnalyze = async () => {
@@ -106,7 +102,6 @@ export function Candidates() {
 
     try {
       setLoading(true);
-      console.log('Starting analysis with:', { politicalAlignment, candidates });
       
       // Store data for Analysis page to use
       sessionStorage.setItem('analysisData', JSON.stringify({

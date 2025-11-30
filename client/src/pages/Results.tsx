@@ -26,11 +26,8 @@ export function Results() {
 
     try {
       const response = JSON.parse(analysisResponseStr);
-      console.log('Raw analysis response:', response);
       
-      // Extract text from response
       const text = response[0]?.content?.parts?.[0]?.text || '';
-      console.log('Response text:', text);
       
       if (!text) {
         throw new Error('No analysis text found in response');
@@ -39,11 +36,9 @@ export function Results() {
       // Remove markdown code block markers
       const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/);
       const jsonStr = jsonMatch ? jsonMatch[1] : text;
-      console.log('Extracted JSON string:', jsonStr);
       
       // Parse JSON
       const agentResult = JSON.parse(jsonStr);
-      console.log('Parsed agent result:', agentResult);
       
       // Handle both single object and array responses
       const resultsArray = Array.isArray(agentResult) ? agentResult : [agentResult];
