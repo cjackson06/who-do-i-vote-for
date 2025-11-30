@@ -36,7 +36,6 @@ export function Analysis() {
       { progress: 25, message: 'Researching candidate positions...' },
       { progress: 50, message: 'Comparing policy alignments...' },
       { progress: 75, message: 'Calculating compatibility scores...' },
-      { progress: 90, message: 'Finalizing results...' }
     ];
 
     let currentIndex = 0;
@@ -50,7 +49,14 @@ export function Analysis() {
 
     const performAnalysis = async () => {
       try {
-        const response = await analyzeCandidates({ politicalAlignment, candidates });
+        const response = await analyzeCandidates(
+          { politicalAlignment, candidates },
+          () => {
+            // Pre-response callback: set progress to 90%
+            setProgress(90);
+            setStatusMessage('Making recommendations...');
+          }
+        );
         
         // Store raw response for Results page to parse
         sessionStorage.setItem('analysisResponse', JSON.stringify(response));
