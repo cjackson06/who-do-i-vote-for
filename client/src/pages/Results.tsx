@@ -60,7 +60,7 @@ export function Results() {
         description: 'Failed to parse analysis results',
         variant: 'destructive'
       });
-      navigate('/');
+      navigate('/analysis');
     }
   }, [navigate, toast]);
 
