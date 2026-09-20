@@ -84,6 +84,10 @@ Goals of this modernization:
 - **Future-proofing**: `apps/elections` slot reserved for local-election lookup
   (Google Civic Information / Vote411 are the likely sources); swipe onboarding
   is a `profiler` addition, not a rewrite.
+- **Specs-first docs split** (established at Phase 1 kickoff): `docs/` is
+  human-readable narrative; `specs/` holds declarative agent-facing contracts
+  (interfaces + numbered MUST/SHOULD rule IDs) — see `specs/README.md`. New
+  component behavior lands as spec → code → tests citing rule IDs.
 
 ## Phases
 

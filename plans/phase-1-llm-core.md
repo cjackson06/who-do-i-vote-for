@@ -17,6 +17,9 @@ Everything later (research swarm, analysis pipeline, evals) calls through this.
   FK to job/run — feeds evals + future billing analytics
 
 ## Tasks
+- [ ] `specs/llm.md` contract written first (rule IDs: `LLM-CONFIG-*`,
+      `LLM-CLIENT-*`, `LLM-STREAM-*`, `LLM-CALL-*`, `LLM-CHECK-*`,
+      `LLM-PROMPT-*` — see `specs/README.md`)
 - [ ] `apps/llm` app: role config schema + validation at startup (fail fast on
       missing role config)
 - [ ] `LLMClient` wrapper: `complete(role, messages, schema=None, ...)` returning

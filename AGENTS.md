@@ -47,10 +47,16 @@ client/               Legacy React frontend (deleted at Phase 3 cutover)
 my_politician/        Legacy ADK agent configs (deleted at Phase 3 cutover)
 political_profiler/   Legacy ADK agent configs (deleted at Phase 3 cutover)
 backend/              Django project (in progress)
-docs/                 Architecture + self-hosting docs
+docs/                 Human-facing narrative docs (architecture, self-hosting)
+specs/                Declarative agent-facing contracts — see specs/README.md
 plans/                Modernization master plan + per-phase trackers
 tests/                Python tests
 ```
+
+- **docs vs specs:** `docs/` explains the system for humans; `specs/`
+  prescribes behavior for agents (interfaces + numbered MUST/SHOULD rules).
+  New component behavior → write the spec first, then code, then tests that
+  cite the spec's rule IDs.
 
 ## Environment
 
