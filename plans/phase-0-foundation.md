@@ -33,13 +33,20 @@ conventional commits in place. No product features yet.
 - [x] `.gitignore` covers `*.sqlite3` (backend/db.sqlite3 was unignored)
 - [x] `.env.example` populated with planned variables
 
-### Django scaffold — **skipped in this pass** (owner is building `backend/` themselves)
-- [ ] `uv add django uvicorn dj-database-url` (keep `google-adk` for now — removed
-      at Phase 3 cutover so the old backend keeps running until replaced)
-- [ ] Layout: `config/` (settings, urls, asgi) + `apps/core`
-- [ ] Settings via env: `DATABASE_URL` (SQLite default, Postgres for hosted),
-      `DEBUG`, `SECRET_KEY`, `ALLOWED_HOSTS`
-- [ ] ASGI entrypoint; run under uvicorn (SSE depends on it later)
+### Django scaffold — in progress (owner-driven, agent-assisted)
+- [x] `uv add django uvicorn dj-database-url` (django + uvicorn added by owner;
+      dj-database-url added; `google-adk` kept until Phase 3 cutover)
+- [ ] Layout: `config/` (settings, urls, asgi) + `apps/core` — `config/` exists;
+      `apps/` arrive with Phase 1
+- [x] Settings via env: `DATABASE_URL` (SQLite default, Postgres for hosted),
+      `DEBUG`, `SECRET_KEY`, `ALLOWED_HOSTS` — implemented as split
+      `config/settings/{base,local,prod}.py` with a typed pydantic-settings
+      `Settings` class in base (env + repo-root `.env`); `prod.py` fails fast
+      on dev-grade SECRET_KEY / empty ALLOWED_HOSTS; security hardening block;
+      entrypoints default to `config.settings.local` (prod pinned later by
+      Dockerfile ENV); tests pin settings via `pythonpath` + ty `extra-paths`
+- [x] ASGI entrypoint; run under uvicorn (SSE depends on it later) — verified:
+      `uvicorn config.asgi:application` serves HTTP 200
 - [ ] Healthcheck endpoint `/healthz` (DB ping, version)
 - [ ] Dockerfile (multi-stage, uv-based, non-root) + docker-compose: `web` + `db`
       (postgres 16) with healthchecks
