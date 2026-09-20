@@ -21,9 +21,8 @@ and trackers live in `plans/phase-*.md`.
   - `uv run ruff check .` and `uv run ruff format .` — CI enforces both
     (`ruff check`, `ruff format --check`).
 - **Type check:** `uv run ty check .`
-- **Tests:** `uv run pytest` — no suite yet; tests land with Phase 1
-  (pytest exits with code 5 when zero tests are collected, so it's not in
-  pre-flight/CI until then)
+- **Tests:** `uv run pytest` — Django tests via pytest-django
+  (`DJANGO_SETTINGS_MODULE=config.settings.local` pinned in pyproject)
 - **Commits: Conventional Commits** (commitizen is configured). Prefer
   `uv run cz commit`; otherwise format messages as `type(scope): subject` with
   types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`.
@@ -33,8 +32,7 @@ and trackers live in `plans/phase-*.md`.
 ```bash
 just preflight
 # or, equivalently (raw commands stay canonical — CI runs these):
-uv run ruff check . && uv run ruff format --check . && uv run ty check .
-# add `&& uv run pytest` once the Phase 1 test suite exists
+uv run ruff check . && uv run ruff format --check . && uv run ty check . && uv run pytest
 ```
 
 `justfile` wraps other common commands too (`just test`, `just manage <cmd>`,

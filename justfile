@@ -21,8 +21,8 @@ format:
 types:
     uv run ty check .
 
-# AGENTS.md pre-flight: ruff check + ruff format --check + ty (add `test` once the Phase 1 suite lands)
-preflight: lint format types
+# AGENTS.md pre-flight: ruff check + ruff format --check + ty + pytest
+preflight: lint format types test
 
 # Run tests; extra args pass through, e.g. `just test tests/test_foo.py -k bar`
 test *ARGS:
