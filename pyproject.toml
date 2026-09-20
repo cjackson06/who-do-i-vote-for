@@ -5,14 +5,59 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "django>=6.1.1",
     "google-adk>=1.18.0",
 ]
 
 [dependency-groups]
 dev = [
-    "black>=25.11.0",
     "flake8>=7.3.0",
     "ipykernel>=7.1.0",
     "pytest>=9.0.1",
+    "ruff>=0.16.8",
     "ty>=0.0.1a26",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",
+	"I",
+    "ANN",
+    "FBT",
+    "DTZ",
+    "RET",
+    "SIM",
+    "W",
+    "F",
+    "C90",
+    "ERA",
+    "BLE",
+    "S",
+    "B",
+    "T20",
+    "INP",
+    "PIE",
+    "PYI",
+    "ARG",
+    "PTH",
+    "N",
+    "PD",
+    "RUF",
+    "UP",
+    "PLR2004",
+    "PLR5501",
+    "FAST"
+    ]
+ignore = [
+    "E501",
+    "W291",
+    "C901",
+    "E203",
+    "E231",
+    "S608",
+    "S311",
+    "BLE001",
+    "RUF012",
+    "N805",
+    "DTZ005",
 ]
