@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     # NoDecode: env values arrive as raw strings (CSV) — JSON decoding disabled
     ALLOWED_HOSTS: Annotated[list[str], NoDecode] = []
     DATABASE_URL: str = f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+    # settings spec: specs/settings.md (SETTINGS-4) — only toggleable prod
+    # hardening flag; disable for local compose / trusted-TLS-proxy setups
+    SECURE_SSL_REDIRECT: bool = True
 
     @field_validator("ALLOWED_HOSTS", mode="before")
     @classmethod
