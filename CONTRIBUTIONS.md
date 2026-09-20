@@ -78,6 +78,9 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 - Docker and Docker Compose
 - Git
 - Code editor (VS Code recommended)
+- [just](https://github.com/casey/just) (optional — task shortcuts via the
+  `justfile`; install with `uv tool install rust-just` and explore with
+  `just --list`)
 
 ### Initial Setup
 
@@ -132,18 +135,23 @@ cd client && npm run dev
 #### Style Guide
 
 - Follow [PEP 8](https://pep8.org/) style guide
-- Use [Black](https://black.readthedocs.io/) for code formatting
-- Use [Flake8](https://flake8.pycqa.org/) for linting
-- Maximum line length: 88 characters (Black default)
+- Use [Ruff](https://docs.astral.sh/ruff/) for formatting **and** linting
+  (rules configured in `pyproject.toml` under `[tool.ruff.lint]`)
 
 #### Formatting
 
 ```bash
 # Format code
-uv run black .
+uv run ruff format .
 
-# Check linting
-uv run flake8 .
+# Lint (CI enforces this and `ruff format --check`)
+uv run ruff check .
+
+# Type check
+uv run ty check .
+
+# Tests
+uv run pytest
 ```
 
 #### Best Practices
@@ -159,9 +167,9 @@ Example:
 ```python
 from typing import List, Dict, Optional
 
+
 def analyze_candidate_compatibility(
-    user_beliefs: Dict[str, str],
-    candidate_positions: Dict[str, str]
+    user_beliefs: Dict[str, str], candidate_positions: Dict[str, str]
 ) -> Dict[str, float]:
     """
     Analyze compatibility between user beliefs and candidate positions.
@@ -360,21 +368,23 @@ Example:
 import pytest
 from app.agents import IdeologyMatcher
 
+
 def test_ideology_matcher_high_compatibility():
     """Test that ideology matcher correctly identifies high compatibility."""
     matcher = IdeologyMatcher()
     result = matcher.analyze(
         user_beliefs={"economy": "progressive"},
-        candidate_positions={"economy": "progressive"}
+        candidate_positions={"economy": "progressive"},
     )
     assert result.compatibility > 0.8
+
 
 def test_ideology_matcher_low_compatibility():
     """Test that ideology matcher correctly identifies low compatibility."""
     matcher = IdeologyMatcher()
     result = matcher.analyze(
         user_beliefs={"economy": "progressive"},
-        candidate_positions={"economy": "conservative"}
+        candidate_positions={"economy": "conservative"},
     )
     assert result.compatibility < 0.3
 ```

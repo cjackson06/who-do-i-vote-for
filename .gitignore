@@ -7,6 +7,7 @@ wheels/
 *.egg-info
 archive/
 *.db
+*.sqlite3
 *.ipynb 
 node_modules/
 *.env

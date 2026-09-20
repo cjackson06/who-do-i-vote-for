@@ -134,17 +134,46 @@ We welcome contributions! Please see [CONTRIBUTIONS.md](CONTRIBUTIONS.md) for gu
 
 ## Development Tools
 
-### Code Formatting
+### Task runner
 
-- Backend: `black` for Python formatting
+Common commands are wrapped in a [`justfile`](justfile) (using
+[just](https://github.com/casey/just)):
+
+```bash
+uv tool install rust-just  # or: cargo install just / brew install just
+
+just --list         # index of recipes
+just preflight      # ruff check + ruff format --check + ty check
+just test           # pytest (args pass through, e.g. `just test tests/test_foo.py`)
+just manage check   # any Django management command
+just server         # Django dev server
+```
+
+### Code Formatting & Linting
+
+- Backend: `ruff` for formatting **and** linting (CI enforces
+  `ruff check` + `ruff format --check`), `ty` for type checking
 - Frontend: `eslint` for linting
 
 ```bash
-# Format backend code
-uv run black .
+# Format + lint backend
+uv run ruff format .
+uv run ruff check .
 
-# Lint frontend code
+# Type check + tests
+uv run ty check .
+uv run pytest
+
+# Lint frontend
 cd client && npm run lint
+```
+
+### Commits
+
+Conventional Commits via [commitizen](https://commitizen-tools.github.io/commitizen/):
+
+```bash
+uv run cz commit
 ```
 
 ## Troubleshooting

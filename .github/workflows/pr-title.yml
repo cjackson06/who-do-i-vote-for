@@ -1,0 +1,31 @@
+name: PR Title
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+
+permissions:
+  pull-requests: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title (Conventional Commits)
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          regex='^(feat|fix|docs|refactor|test|chore|ci)(\([^)]+\))?(!)?: .+'
+
+          if [[ ! "$TITLE" =~ $regex ]]; then
+            echo "::error::PR title does not follow Conventional Commits"
+            echo "Expected: type(scope)?: subject"
+            echo "Allowed types: feat, fix, docs, refactor, test, chore, ci"
+            echo "Examples: feat(backend): add voting API, fix: correct matcher regex"
+            exit 1
+          fi
+
+          echo "PR title is valid: $TITLE"
