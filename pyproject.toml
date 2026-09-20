@@ -5,9 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "dj-database-url>=3.1.2",
     "django>=6.1.1",
     "google-adk>=1.18.0",
     "pydantic-settings>=2.12.0",
+    "uvicorn>=0.38.0",
 ]
 
 [dependency-groups]
@@ -21,6 +23,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["backend"]
 
 [tool.commitizen]
 name = "cz_conventional_commits"
@@ -29,6 +32,8 @@ version_scheme = "pep440"
 version_provider = "pep621"
 
 [tool.ruff.lint.per-file-ignores]
+# Django settings modules: star-imports are the convention (base + env overrides)
+"backend/config/settings/*" = ["F401", "F403", "F405"]
 # Legacy ADK agent configs (deleted at Phase 3 cutover)
 "my_politician/**" = ["INP001"]
 "political_profiler/**" = ["INP001"]
@@ -78,3 +83,6 @@ ignore = [
     "N805",
     "DTZ005",
 ]
+
+[tool.ty.environment]
+extra-paths = ["backend"]
