@@ -26,9 +26,10 @@ conventional commits in place. No product features yet.
 - [x] commitizen: `[tool.commitizen]` in pyproject, `--dev` dep added,
       commit style documented in AGENTS.md + README (+ CONTRIBUTIONS.md updated
       from black/flake8 to ruff; flake8 dev dep removed)
-- [x] GitHub Actions workflow (`.github/workflows/ci.yml`): ruff check +
-      format check, `ty` type check, pytest, client build check (dropped when
-      React is deleted in Phase 3)
+- [x] GitHub Actions workflows (split by stack, path-scoped triggers):
+      `.github/workflows/ci-python.yml` (ruff check + format check, `ty` type
+      check, pytest) and `.github/workflows/ci-client.yml` (legacy React build,
+      dropped when React is deleted in Phase 3)
 - [x] `.gitignore` covers `*.sqlite3` (backend/db.sqlite3 was unignored)
 - [x] `.env.example` populated with planned variables
 
