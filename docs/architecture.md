@@ -43,7 +43,7 @@ framework, no DRF.
 
 | Area | Decision |
 |---|---|
-| Backend | Python 3.13 + Django 5 (ASGI), uv-managed |
+| Backend | Python 3.13 + Django 6 (ASGI), uv-managed |
 | Frontend | HTMX-first Django templates + Tailwind; small TS islands. React retired at Phase 3 |
 | Models | Raw OpenAI-compatible client; per-role `{base_url, api_key, model}` server config. Hosted: env-only, never user-facing |
 | Search | Tavily + FEC API in v1 behind a pluggable `SourceAdapter` interface |
