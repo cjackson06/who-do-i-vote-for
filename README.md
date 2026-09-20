@@ -134,6 +134,21 @@ We welcome contributions! Please see [CONTRIBUTIONS.md](CONTRIBUTIONS.md) for gu
 
 ## Development Tools
 
+### Task runner
+
+Common commands are wrapped in a [`justfile`](justfile) (using
+[just](https://github.com/casey/just)):
+
+```bash
+uv tool install rust-just  # or: cargo install just / brew install just
+
+just --list         # index of recipes
+just preflight      # ruff check + ruff format --check + ty check
+just test           # pytest (args pass through, e.g. `just test tests/test_foo.py`)
+just manage check   # any Django management command
+just server         # Django dev server
+```
+
 ### Code Formatting & Linting
 
 - Backend: `ruff` for formatting **and** linting (CI enforces

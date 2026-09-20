@@ -28,8 +28,9 @@ conventional commits in place. No product features yet.
       from black/flake8 to ruff; flake8 dev dep removed)
 - [x] GitHub Actions workflows (split by stack, path-scoped triggers):
       `.github/workflows/ci-python.yml` (ruff check + format check, `ty` type
-      check, pytest) and `.github/workflows/ci-client.yml` (legacy React build,
-      dropped when React is deleted in Phase 3)
+      check; pytest step commented out until the Phase 1 suite exists — pytest
+      exits 5 with zero tests) and `.github/workflows/ci-client.yml`
+      (legacy React build, dropped when React is deleted in Phase 3)
 - [x] `.gitignore` covers `*.sqlite3` (backend/db.sqlite3 was unignored)
 - [x] `.env.example` populated with planned variables
 

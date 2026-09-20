@@ -78,6 +78,9 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 - Docker and Docker Compose
 - Git
 - Code editor (VS Code recommended)
+- [just](https://github.com/casey/just) (optional — task shortcuts via the
+  `justfile`; install with `uv tool install rust-just` and explore with
+  `just --list`)
 
 ### Initial Setup
 
