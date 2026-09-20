@@ -20,11 +20,16 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 from pathlib import Path
 from typing import Annotated
 
+from dotenv import load_dotenv
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 # config/settings/base.py → parents[2] = backend/
 BASE_DIR = Path(__file__).resolve().parents[2]
+
+# SETTINGS-1: expose the open-ended LLM_* family (apps/llm reads it via
+# os.getenv) from the same repo-root .env; process env keeps precedence.
+load_dotenv(BASE_DIR.parent / ".env", override=False)
 
 
 class Settings(BaseSettings):
@@ -72,6 +77,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "apps.core",
+    "apps.llm",
 ]
 
 MIDDLEWARE = [

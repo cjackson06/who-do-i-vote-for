@@ -8,8 +8,10 @@ dependencies = [
     "dj-database-url>=3.1.2",
     "django>=6.1.1",
     "google-adk>=1.18.0",
+    "openai>=3.16.2",
     "psycopg[binary]>=3.3.6",
     "pydantic-settings>=2.12.0",
+    "python-dotenv>=1.2.1",
     "uvicorn>=0.38.0",
 ]
 
@@ -18,6 +20,7 @@ dev = [
     "commitizen>=4.18.1",
     "ipykernel>=7.1.0",
     "pytest>=9.0.1",
+    "pytest-asyncio>=1.4.0",
     "pytest-django>=4.14.0",
     "ruff>=0.16.8",
     "ty>=0.0.1a26",
@@ -27,6 +30,8 @@ dev = [
 testpaths = ["tests"]
 pythonpath = ["backend"]
 DJANGO_SETTINGS_MODULE = "config.settings.local"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
