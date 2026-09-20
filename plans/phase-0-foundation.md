@@ -6,26 +6,33 @@ conventional commits in place. No product features yet.
 ## Tasks
 
 ### Cleanup
-- [ ] Remove dead frontend code: mock results in `client/src/api/candidates.ts`,
+- [x] Remove dead frontend code: mock results in `client/src/api/candidates.ts`,
       `client/src/api/auth.ts` + unrouted Login/Register pages (React)
-- [ ] Remove broken `shared: file:../shared` dependency from `client/package.json`
-- [ ] Delete `my_politician/tmp/`
-- [ ] Remove or repurpose empty `specs/` directory
-- [ ] Add MIT `LICENSE` file (README already claims MIT)
+      — also removed `client/src/api/api.ts` (only used by auth.ts) and
+      `client/src/pages/BlankPage.tsx` (unrouted)
+- [x] Remove broken `shared: file:../shared` dependency from `client/package.json`
+      (package-lock resynced via `npm install`)
+- [x] Delete `my_politician/tmp/`
+- [x] Remove empty `specs/` directory
+- [x] Add MIT `LICENSE` file (README already claims MIT)
 
 ### Docs
-- [ ] `AGENTS.md` — repo conventions: uv-only Python workflow, ruff rules,
+- [x] `AGENTS.md` — repo conventions: uv-only Python workflow, ruff rules,
       pytest, cz/conventional commits, layout map
-- [ ] `docs/architecture.md` — target architecture (see master plan) + decision log
-- [ ] `docs/self-hosting.md` — stub (filled in during Phases 1 & 3)
+- [x] `docs/architecture.md` — target architecture (see master plan) + decision log
+- [x] `docs/self-hosting.md` — stub (filled in during Phases 1 & 3)
 
 ### Tooling
-- [ ] commitizen: `[tool.commitizen]` in pyproject; commit style documented in
-      AGENTS.md + README
-- [ ] GitHub Actions workflow: ruff check + format check, `ty` type check,
-      pytest, client build check (dropped when React is deleted in Phase 3)
+- [x] commitizen: `[tool.commitizen]` in pyproject, `--dev` dep added,
+      commit style documented in AGENTS.md + README (+ CONTRIBUTIONS.md updated
+      from black/flake8 to ruff; flake8 dev dep removed)
+- [x] GitHub Actions workflow (`.github/workflows/ci.yml`): ruff check +
+      format check, `ty` type check, pytest, client build check (dropped when
+      React is deleted in Phase 3)
+- [x] `.gitignore` covers `*.sqlite3` (backend/db.sqlite3 was unignored)
+- [x] `.env.example` populated with planned variables
 
-### Django scaffold
+### Django scaffold — **skipped in this pass** (owner is building `backend/` themselves)
 - [ ] `uv add django uvicorn dj-database-url` (keep `google-adk` for now — removed
       at Phase 3 cutover so the old backend keeps running until replaced)
 - [ ] Layout: `config/` (settings, urls, asgi) + `apps/core`
@@ -35,10 +42,11 @@ conventional commits in place. No product features yet.
 - [ ] Healthcheck endpoint `/healthz` (DB ping, version)
 - [ ] Dockerfile (multi-stage, uv-based, non-root) + docker-compose: `web` + `db`
       (postgres 16) with healthchecks
-- [ ] `.env.example` updated with all Phase 0 vars
 
 ## Exit criteria
-- [ ] `docker compose up` serves `/healthz` from Django + Postgres
-- [ ] CI green on PR (ruff, ty, pytest)
-- [ ] `cz` available; commit style documented
-- [ ] Dead code removed; `AGENTS.md` + `docs/architecture.md` exist
+- [ ] `docker compose up` serves `/healthz` from Django + Postgres *(blocked on
+      Django scaffold)*
+- [x] CI checks pass locally: `ruff check`, `ruff format --check`, `ty check`,
+      `pytest`, client `vite build` *(GitHub Actions run pending first push)*
+- [x] `cz` available; commit style documented
+- [x] Dead code removed; `AGENTS.md` + `docs/architecture.md` exist

@@ -89,7 +89,7 @@ Goals of this modernization:
 
 | Phase | File | Scope | Status |
 |---|---|---|---|
-| 0 | [phase-0-foundation.md](phase-0-foundation.md) | Docs, tooling (cz, GHA), Django scaffold, Docker | pending |
+| 0 | [phase-0-foundation.md](phase-0-foundation.md) | Docs, tooling (cz, GHA), Django scaffold, Docker | in progress (Django scaffold with owner) |
 | 1 | [phase-1-llm-core.md](phase-1-llm-core.md) | Model-agnostic LLM layer, role config, ModelCall log | pending |
 | 2 | [phase-2-research-politicians.md](phase-2-research-politicians.md) | Source adapters, research swarm, politician cache | pending |
 | 3 | [phase-3-v1-cutover.md](phase-3-v1-cutover.md) | Analysis pipeline, SSE, HTMX frontend, delete ADK+React | pending |
