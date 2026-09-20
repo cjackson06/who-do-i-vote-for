@@ -17,6 +17,7 @@ dev = [
     "commitizen>=4.18.1",
     "ipykernel>=7.1.0",
     "pytest>=9.0.1",
+    "pytest-django>=4.14.0",
     "ruff>=0.16.8",
     "ty>=0.0.1a26",
 ]
@@ -24,6 +25,7 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["backend"]
+DJANGO_SETTINGS_MODULE = "config.settings.local"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
@@ -31,7 +33,12 @@ tag_format = "v$version"
 version_scheme = "pep440"
 version_provider = "pep621"
 
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "config"]
+
 [tool.ruff.lint.per-file-ignores]
+# Django views: `request` is part of the view signature even when unused
+"backend/**/views.py" = ["ARG001"]
 # Django settings modules: star-imports are the convention (base + env overrides)
 "backend/config/settings/*" = ["F401", "F403", "F405"]
 # Legacy ADK agent configs (deleted at Phase 3 cutover)
