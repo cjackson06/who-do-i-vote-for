@@ -134,17 +134,31 @@ We welcome contributions! Please see [CONTRIBUTIONS.md](CONTRIBUTIONS.md) for gu
 
 ## Development Tools
 
-### Code Formatting
+### Code Formatting & Linting
 
-- Backend: `black` for Python formatting
+- Backend: `ruff` for formatting **and** linting (CI enforces
+  `ruff check` + `ruff format --check`), `ty` for type checking
 - Frontend: `eslint` for linting
 
 ```bash
-# Format backend code
-uv run black .
+# Format + lint backend
+uv run ruff format .
+uv run ruff check .
 
-# Lint frontend code
+# Type check + tests
+uv run ty check .
+uv run pytest
+
+# Lint frontend
 cd client && npm run lint
+```
+
+### Commits
+
+Conventional Commits via [commitizen](https://commitizen-tools.github.io/commitizen/):
+
+```bash
+uv run cz commit
 ```
 
 ## Troubleshooting
