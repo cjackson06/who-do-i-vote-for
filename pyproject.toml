@@ -39,12 +39,18 @@ tag_format = "v$version"
 version_scheme = "pep440"
 version_provider = "pep621"
 
+[tool.ruff.format]
+# Migrations stay in Django's canonical `makemigrations` output style
+exclude = ["backend/**/migrations/*"]
+
 [tool.ruff.lint.isort]
 known-first-party = ["apps", "config"]
 
 [tool.ruff.lint.per-file-ignores]
 # Django views: `request` is part of the view signature even when unused
 "backend/**/views.py" = ["ARG001"]
+# Django admin permission hooks: same convention
+"backend/**/admin.py" = ["ARG002"]
 # Django settings modules: star-imports are the convention (base + env overrides)
 "backend/config/settings/*" = ["F401", "F403", "F405"]
 # Legacy ADK agent configs (deleted at Phase 3 cutover)
@@ -94,6 +100,9 @@ ignore = [
     "BLE001",
     "RUF012",
     "N805",
+    # Domain exception names without Error suffix (Django precedent:
+    # ImproperlyConfigured); exact names are specced in specs/llm.md
+    "N818",
     "DTZ005",
 ]
 
