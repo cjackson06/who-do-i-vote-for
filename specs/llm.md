@@ -22,9 +22,9 @@ The set is closed; adding a role means changing this spec and the code.
 
 ```python
 class RoleConfig(BaseModel):
-    base_url: str            # OpenAI-compatible endpoint (…/v1)
-    api_key: str = "EMPTY"   # "EMPTY" placeholder for keyless endpoints (Ollama)
-    model: str               # model name as the endpoint knows it
+    base_url: str  # OpenAI-compatible endpoint (…/v1)
+    api_key: str = "EMPTY"  # "EMPTY" placeholder for keyless endpoints (Ollama)
+    model: str  # model name as the endpoint knows it
     temperature: float | None = None  # None → endpoint default
 ```
 
@@ -50,7 +50,7 @@ class LLMClient:
     async def complete(
         self,
         role: str,
-        messages: list[dict],            # OpenAI-style {"role", "content"}
+        messages: list[dict],  # OpenAI-style {"role", "content"}
         *,
         schema: type[BaseModel] | None = None,
         temperature: float | None = None,  # wins over role config
@@ -59,7 +59,11 @@ class LLMClient:
         prompt_version: str | None = None,
     ) -> str | BaseModel: ...
     async def stream(
-        self, role: str, messages: list[dict], *, temperature: float | None = None,
+        self,
+        role: str,
+        messages: list[dict],
+        *,
+        temperature: float | None = None,
         max_tokens: int | None = None,
     ) -> AsyncIterator[str]: ...
 ```
@@ -104,16 +108,20 @@ Phase 3/5 add nullable FKs by migration (decision: defer entirely, Phase 1).
   (`str`). With `schema`: returns a validated instance of that pydantic
   model — never raw JSON strings, never `dict`.
 - **LLM-CLIENT-2 (MUST)** — structured output first attempts
-  `response_format: json_schema` (SDK `.parse()` with the pydantic schema).
+  `response_format: json_schema` (schema JSON built from the pydantic model).
+  Structured responses are always parsed **client-side** from the raw text
+  (`json.loads` + `model_validate`) — NOT via the SDK's `.parse()` — so
+  retries can echo the model's invalid output (LLM-CLIENT-5) and weak
+  self-hosted endpoints behave uniformly.
 - **LLM-CLIENT-3 (MUST)** — when the endpoint rejects `json_schema`
   (HTTP 400/404 `BadRequestError`), the client MUST transparently downgrade
   to **JSON mode** for that attempt (`response_format: {"type": "json_object"}`
   with the JSON schema injected into the system/user messages) and MUST
   record the downgrade in-process for that role so later calls skip the
   unsupported mode. The downgrade MUST NOT surface as an error.
-- **LLM-CLIENT-4 (MUST)** — JSON-mode responses are `json.loads`-ed then
-  `schema.model_validate`d. Malformed JSON or validation failure = a
-  malformed attempt.
+- **LLM-CLIENT-4 (MUST)** — structured responses (both `json_schema` and
+  JSON-mode) are `json.loads`-ed then `schema.model_validate`d. Malformed
+  JSON, empty content, or validation failure = a malformed attempt.
 - **LLM-CLIENT-5 (MUST)** — malformed attempts are retried by re-asking with
   the model's invalid output **and** the concrete parse/validation error
   appended as extra messages, max `attempts=3` (default, bounded); exhaustion

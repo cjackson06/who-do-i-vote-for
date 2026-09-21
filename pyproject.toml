@@ -56,8 +56,9 @@ known-first-party = ["apps", "config"]
 # Legacy ADK agent configs (deleted at Phase 3 cutover)
 "my_politician/**" = ["INP001"]
 "political_profiler/**" = ["INP001"]
-# Tests: no package marker needed; asserts are the point
-"tests/**" = ["INP001", "S101"]
+# Tests: no package marker needed; asserts are the point. Fixture args go
+# unannotated/unused-by-design; magic numbers in assertions are intentional
+"tests/**" = ["INP001", "S101", "ANN", "ARG", "PLR2004"]
 
 [tool.ruff.lint]
 select = [

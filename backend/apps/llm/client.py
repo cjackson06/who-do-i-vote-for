@@ -39,8 +39,13 @@ class LLMClient:
     (LLM-CONFIG-4). Tests inject `http_client` to mock the transport.
     """
 
-    def __init__(self, http_client: httpx2.AsyncClient | None = None) -> None:
+    def __init__(
+        self,
+        http_client: httpx2.AsyncClient | None = None,
+        max_retries: int | None = None,
+    ) -> None:
         self._http_client = http_client
+        self._max_retries = max_retries
         self._sdk_clients: dict[tuple[str, str, str], AsyncOpenAI] = {}
         # LLM-CLIENT-3: per-role json_schema support, flipped off on 400/404
         self._json_schema_ok: dict[str, bool] = {}
@@ -212,7 +217,7 @@ class LLMClient:
         ]
         retry_extra: list[dict[str, str]] = []
         attempts_made = 1
-        usage = None
+        usage: CompletionUsage | None = None
         last_error = ""
         last_raw = ""
 
@@ -234,50 +239,32 @@ class LLMClient:
 
         for attempt in range(1, attempts + 1):
             attempts_made = attempt
-            try:
-                if json_schema_ok:
-                    # LLM-CLIENT-2: try native structured output first
-                    response = await sdk.chat.completions.parse(
-                        messages=messages + retry_extra,  # type: ignore[arg-type]
-                        response_format=schema,  # type: ignore[arg-type]
-                        model=config.model,
-                        temperature=temperature,
-                        max_tokens=max_tokens,
-                    )
-                    message = response.choices[0].message
-                    raw = message.content or ""
-                    usage = response.usage
-                    parsed = getattr(message, "parsed", None)
-                    if parsed is not None:
-                        await log_outcome(ModelCall.Status.OK, "", usage)
-                        return parsed
-                    # LLM-CLIENT-4: parse() success but no parsed payload
-                    last_raw = raw
-                    last_error = "json_schema response missing parsed payload"
-                    retry_extra = _retry_messages(raw, last_error)
-                    continue
-
+            if json_schema_ok:
+                # LLM-CLIENT-2: native structured output first
+                request_messages = messages + retry_extra
+                response_kwargs: dict[str, Any] = {
+                    "response_format": {
+                        "type": "json_schema",
+                        "json_schema": {
+                            "name": schema.__name__,
+                            "strict": False,
+                            "schema": schema.model_json_schema(),
+                        },
+                    }
+                }
+            else:
                 # LLM-CLIENT-3: JSON-mode fallback (schema in messages)
+                request_messages = messages + schema_note + retry_extra
+                response_kwargs = {"response_format": {"type": "json_object"}}
+
+            try:
                 response = await sdk.chat.completions.create(
                     model=config.model,
-                    messages=messages + schema_note + retry_extra,  # type: ignore[arg-type]
-                    response_format={"type": "json_object"},
+                    messages=request_messages,  # type: ignore[arg-type]
                     temperature=temperature,
                     max_tokens=max_tokens,
+                    **response_kwargs,
                 )
-                raw = response.choices[0].message.content or ""
-                usage = response.usage
-                last_raw = raw
-                try:
-                    parsed = schema.model_validate(json.loads(raw))
-                except (json.JSONDecodeError, ValidationError) as exc:
-                    # LLM-CLIENT-4/5: re-ask with the invalid output + error
-                    last_error = f"{type(exc).__name__}: {exc}"[:ERROR_TEXT_LIMIT]
-                    retry_extra = _retry_messages(raw, last_error)
-                    continue
-                await log_outcome(ModelCall.Status.OK, "", usage)
-                return parsed
-
             except (BadRequestError, NotFoundError) as exc:
                 if json_schema_ok:
                     # LLM-CLIENT-3: transparent downgrade; consumes the attempt
@@ -292,6 +279,20 @@ class LLMClient:
                 error_text = f"{type(exc).__name__}: {exc}"[:ERROR_TEXT_LIMIT]
                 await log_outcome(ModelCall.Status.ERROR, error_text, usage)
                 raise
+
+            raw = response.choices[0].message.content or ""
+            usage = response.usage
+            last_raw = raw
+            try:
+                # LLM-CLIENT-4: client-side parse for both modes
+                parsed = schema.model_validate(json.loads(raw))
+            except (json.JSONDecodeError, ValidationError) as exc:
+                # LLM-CLIENT-4/5: re-ask with the invalid output + error
+                last_error = f"{type(exc).__name__}: {exc}"[:ERROR_TEXT_LIMIT]
+                retry_extra = _retry_messages(raw, last_error)
+                continue
+            await log_outcome(ModelCall.Status.OK, "", usage)
+            return parsed
 
         message = (
             f"structured output for role {role!r} failed after "
@@ -344,6 +345,8 @@ class LLMClient:
             }
             if self._http_client is not None:
                 kwargs["http_client"] = self._http_client
+            if self._max_retries is not None:
+                kwargs["max_retries"] = self._max_retries
             self._sdk_clients[key] = AsyncOpenAI(**kwargs)
         return self._sdk_clients[key]
 
@@ -352,7 +355,7 @@ def _retry_messages(raw: str, error: str) -> list[dict[str, str]]:
     """LLM-CLIENT-5: echo invalid output + concrete error as re-ask context."""
 
     return [
-        {"role": "assistant", "content": raw},
+        {"role": "assistant", "content": raw if raw.strip() else "(empty response)"},
         {"role": "user", "content": RETRY_INSTRUCTION.format(error=error)},
     ]
 
