@@ -24,7 +24,7 @@ Goals of this modernization:
 
 | Area | Decision |
 |---|---|
-| Backend | **Python 3.13 + Django 5 (ASGI)**, uv-managed — replaces ADK `api_server` entirely |
+| Backend | **Python 3.13 + Django 6 (ASGI)**, uv-managed — replaces ADK `api_server` entirely |
 | Frontend | **HTMX-first Django templates + Tailwind**, small TypeScript islands (charts, later swipe). React app retired at Phase 3 cutover |
 | Models | **Raw OpenAI-compatible client**, role-based server config (`base_url` + `api_key` + `model` per role). Hosted: env-only, never exposed to users. Self-hosted: point at Ollama/vLLM/LiteLLM proxy/Gemini OpenAI-compat/OpenRouter |
 | Search | **Tavily** (web+news) + **FEC API** (donations) in v1, behind a pluggable source-adapter interface (YouTube, voting history, social later) |
@@ -84,13 +84,17 @@ Goals of this modernization:
 - **Future-proofing**: `apps/elections` slot reserved for local-election lookup
   (Google Civic Information / Vote411 are the likely sources); swipe onboarding
   is a `profiler` addition, not a rewrite.
+- **Specs-first docs split** (established at Phase 1 kickoff): `docs/` is
+  human-readable narrative; `specs/` holds declarative agent-facing contracts
+  (interfaces + numbered MUST/SHOULD rule IDs) — see `specs/README.md`. New
+  component behavior lands as spec → code → tests citing rule IDs.
 
 ## Phases
 
 | Phase | File | Scope | Status |
 |---|---|---|---|
-| 0 | [phase-0-foundation.md](phase-0-foundation.md) | Docs, tooling (cz, GHA), Django scaffold, Docker | in progress (Django scaffold with owner) |
-| 1 | [phase-1-llm-core.md](phase-1-llm-core.md) | Model-agnostic LLM layer, role config, ModelCall log | pending |
+| 0 | [phase-0-foundation.md](phase-0-foundation.md) | Docs, tooling (cz, GHA), Django scaffold, Docker | done (GHA run pending first push) |
+| 1 | [phase-1-llm-core.md](phase-1-llm-core.md) | Model-agnostic LLM layer, role config, ModelCall log | done |
 | 2 | [phase-2-research-politicians.md](phase-2-research-politicians.md) | Source adapters, research swarm, politician cache | pending |
 | 3 | [phase-3-v1-cutover.md](phase-3-v1-cutover.md) | Analysis pipeline, SSE, HTMX frontend, delete ADK+React | pending |
 | 4 | [phase-4-accounts-saves.md](phase-4-accounts-saves.md) | Accounts, claim flow, history, entitlement hooks | pending |

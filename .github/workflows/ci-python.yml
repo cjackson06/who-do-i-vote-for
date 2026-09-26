@@ -43,3 +43,6 @@ jobs:
 
       - name: Type check (ty)
         run: uv run ty check .
+
+      - name: Tests (pytest)
+        run: uv run pytest

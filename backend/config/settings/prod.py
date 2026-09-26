@@ -24,6 +24,9 @@ DATABASES = {
     "default": dj_database_url.parse(settings.DATABASE_URL, conn_max_age=600),
 }
 
+# SETTINGS-4: sole env-toggleable hardening flag (local compose / TLS proxy)
+SECURE_SSL_REDIRECT = settings.SECURE_SSL_REDIRECT
+
 
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

@@ -1,0 +1,8 @@
+# Whitelist build context: the image only needs the uv project + backend/.
+*
+!backend/
+!pyproject.toml
+!uv.lock
+**/__pycache__
+**/*.py[cod]
+**/*.sqlite3

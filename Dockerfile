@@ -1,20 +1,42 @@
-FROM ubuntu:24.04
+# syntax=docker/dockerfile:1
 
-# Install uv
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
-ADD https://astral.sh/uv/install.sh /uv-installer.sh
-RUN sh /uv-installer.sh && rm /uv-installer.sh
-ENV PATH="/root/.local/bin/:$PATH"
+# --- Builder: resolve locked dependencies with uv -------------------------
+FROM python:3.13-slim AS builder
 
-RUN apt-get update && apt-get install -y --no-install-recommends gcc python3-dev musl-dev
+COPY --from=ghcr.io/astral-sh/uv:0.12.17 /uv /uvx /usr/local/bin/
 
-# Install dependencies
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
+
 WORKDIR /app
-COPY uv.lock .
-COPY pyproject.toml .
-RUN uv sync
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
 
-COPY my_politician/ my_politician/
-COPY political_profiler/ political_profiler/
+# --- Runtime ---------------------------------------------------------------
+FROM python:3.13-slim
 
-CMD ["uv", "run", "adk", "api_server","--host", "0.0.0.0", "--allow_origins", "*"]
+# SETTINGS-5: the image never defaults to prod. During the build phases the
+# stack runs config.settings.local (entrypoint defaults); hosted/prod deploys
+# set DJANGO_SETTINGS_MODULE=config.settings.prod explicitly (Phase 3 pins it).
+# manage.py is invoked from /app so backend/ lands on sys.path via
+# script-dir + PYTHONPATH (belt and braces).
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONPATH=/app/backend \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+COPY --from=builder /app/.venv /app/.venv
+COPY backend/ backend/
+
+# /healthz reports this (specs/core-health.md); CI/compose inject the SHA
+ARG GIT_SHA=dev
+ENV APP_VERSION=${GIT_SHA}
+
+RUN useradd --create-home --uid 10001 appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8000
+# Entrypoint: apply schema, run system checks (fail-fast gate for app config),
+# then serve ASGI — never a WSGI server (SSE later depends on this).
+CMD ["sh", "-c", "python backend/manage.py migrate --noinput && python backend/manage.py check && exec python -m uvicorn config.asgi:application --host 0.0.0.0 --port ${PORT:-8000}"]

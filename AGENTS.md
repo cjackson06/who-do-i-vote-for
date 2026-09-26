@@ -21,9 +21,8 @@ and trackers live in `plans/phase-*.md`.
   - `uv run ruff check .` and `uv run ruff format .` — CI enforces both
     (`ruff check`, `ruff format --check`).
 - **Type check:** `uv run ty check .`
-- **Tests:** `uv run pytest` — no suite yet; tests land with Phase 1
-  (pytest exits with code 5 when zero tests are collected, so it's not in
-  pre-flight/CI until then)
+- **Tests:** `uv run pytest` — Django tests via pytest-django
+  (`DJANGO_SETTINGS_MODULE=config.settings.local` pinned in pyproject)
 - **Commits: Conventional Commits** (commitizen is configured). Prefer
   `uv run cz commit`; otherwise format messages as `type(scope): subject` with
   types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`.
@@ -33,8 +32,7 @@ and trackers live in `plans/phase-*.md`.
 ```bash
 just preflight
 # or, equivalently (raw commands stay canonical — CI runs these):
-uv run ruff check . && uv run ruff format --check . && uv run ty check .
-# add `&& uv run pytest` once the Phase 1 test suite exists
+uv run ruff check . && uv run ruff format --check . && uv run ty check . && uv run pytest
 ```
 
 `justfile` wraps other common commands too (`just test`, `just manage <cmd>`,
@@ -47,10 +45,16 @@ client/               Legacy React frontend (deleted at Phase 3 cutover)
 my_politician/        Legacy ADK agent configs (deleted at Phase 3 cutover)
 political_profiler/   Legacy ADK agent configs (deleted at Phase 3 cutover)
 backend/              Django project (in progress)
-docs/                 Architecture + self-hosting docs
+docs/                 Human-facing narrative docs (architecture, self-hosting)
+specs/                Declarative agent-facing contracts — see specs/README.md
 plans/                Modernization master plan + per-phase trackers
 tests/                Python tests
 ```
+
+- **docs vs specs:** `docs/` explains the system for humans; `specs/`
+  prescribes behavior for agents (interfaces + numbered MUST/SHOULD rules).
+  New component behavior → write the spec first, then code, then tests that
+  cite the spec's rule IDs.
 
 ## Environment
 

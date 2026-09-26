@@ -1,18 +1,53 @@
+# Deployment contract (docs/self-hosting.md). Host-agnostic: any Compose
+# runtime. `db` (postgres 16) + `web` (Django ASGI via uvicorn).
+#
+# Build-phase stack runs Django's local settings (DEBUG on) — prod pinning
+# arrives with Phase 3/hosted deploy via DJANGO_SETTINGS_MODULE. Secrets
+# (SECRET_KEY, GOOGLE_API_KEY, LLM_*, TAVILY_*) flow ONLY via the optional
+# repo-root `.env` (env_file) — never via `environment:` entries, because
+# Compose interpolates `$` in values and would corrupt secrets containing
+# dollar signs. `environment:` carries only non-secret computed config.
+
 services:
-  backend:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-wdvf}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wdvf}
+      POSTGRES_DB: ${POSTGRES_DB:-wdvf}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wdvf} -d ${POSTGRES_DB:-wdvf}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  web:
     build:
       context: .
-      dockerfile: Dockerfile
+      args:
+        GIT_SHA: ${GIT_SHA:-dev}
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-wdvf}:${POSTGRES_PASSWORD:-wdvf}@db:5432/${POSTGRES_DB:-wdvf}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT:-false}
+    env_file:
+      - path: .env
+        required: false
     ports:
       - "8000:8000"
-    env_file:
-      - .env
-
-  frontend:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    ports:
-      - "3000:80"
     depends_on:
-      - backend
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=5)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  pgdata:

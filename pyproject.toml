@@ -1,5 +1,5 @@
 [project]
-name = "kaggle-agentic-ai"
+name = "who-do-i-vote-for"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -8,7 +8,10 @@ dependencies = [
     "dj-database-url>=3.1.2",
     "django>=6.1.1",
     "google-adk>=1.18.0",
+    "openai>=3.16.2",
+    "psycopg[binary]>=3.3.6",
     "pydantic-settings>=2.12.0",
+    "python-dotenv>=1.2.1",
     "uvicorn>=0.38.0",
 ]
 
@@ -17,6 +20,8 @@ dev = [
     "commitizen>=4.18.1",
     "ipykernel>=7.1.0",
     "pytest>=9.0.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-django>=4.14.0",
     "ruff>=0.16.8",
     "ty>=0.0.1a26",
 ]
@@ -24,6 +29,9 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["backend"]
+DJANGO_SETTINGS_MODULE = "config.settings.local"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
@@ -31,14 +39,26 @@ tag_format = "v$version"
 version_scheme = "pep440"
 version_provider = "pep621"
 
+[tool.ruff.format]
+# Migrations stay in Django's canonical `makemigrations` output style
+exclude = ["backend/**/migrations/*"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "config"]
+
 [tool.ruff.lint.per-file-ignores]
+# Django views: `request` is part of the view signature even when unused
+"backend/**/views.py" = ["ARG001"]
+# Django admin permission hooks: same convention
+"backend/**/admin.py" = ["ARG002"]
 # Django settings modules: star-imports are the convention (base + env overrides)
 "backend/config/settings/*" = ["F401", "F403", "F405"]
 # Legacy ADK agent configs (deleted at Phase 3 cutover)
 "my_politician/**" = ["INP001"]
 "political_profiler/**" = ["INP001"]
-# Tests: no package marker needed; asserts are the point
-"tests/**" = ["INP001", "S101"]
+# Tests: no package marker needed; asserts are the point. Fixture args go
+# unannotated/unused-by-design; magic numbers in assertions are intentional
+"tests/**" = ["INP001", "S101", "ANN", "ARG", "PLR2004"]
 
 [tool.ruff.lint]
 select = [
@@ -81,6 +101,9 @@ ignore = [
     "BLE001",
     "RUF012",
     "N805",
+    # Domain exception names without Error suffix (Django precedent:
+    # ImproperlyConfigured); exact names are specced in specs/llm.md
+    "N818",
     "DTZ005",
 ]
 

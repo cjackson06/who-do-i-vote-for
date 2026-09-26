@@ -34,27 +34,32 @@ conventional commits in place. No product features yet.
 - [x] `.gitignore` covers `*.sqlite3` (backend/db.sqlite3 was unignored)
 - [x] `.env.example` populated with planned variables
 
-### Django scaffold — in progress (owner-driven, agent-assisted)
+### Django scaffold — done
 - [x] `uv add django uvicorn dj-database-url` (django + uvicorn added by owner;
       dj-database-url added; `google-adk` kept until Phase 3 cutover)
-- [ ] Layout: `config/` (settings, urls, asgi) + `apps/core` — `config/` exists;
-      `apps/` arrive with Phase 1
+- [x] Layout: `config/` (settings, urls, asgi) + `apps/core` — `apps/core`
+      holds the healthcheck; further apps land per phase
 - [x] Settings via env: `DATABASE_URL` (SQLite default, Postgres for hosted),
       `DEBUG`, `SECRET_KEY`, `ALLOWED_HOSTS` — implemented as split
       `config/settings/{base,local,prod}.py` with a typed pydantic-settings
       `Settings` class in base (env + repo-root `.env`); `prod.py` fails fast
       on dev-grade SECRET_KEY / empty ALLOWED_HOSTS; security hardening block;
-      entrypoints default to `config.settings.local` (prod pinned later by
-      Dockerfile ENV); tests pin settings via `pythonpath` + ty `extra-paths`
+      entrypoints default to `config.settings.local` (prod is set explicitly
+      by deployers — Phase 0–2 image runs local, Phase 3 pins prod);
+      `SECURE_SSL_REDIRECT` env knob; tests pin settings via `pythonpath` +
+      ty `extra-paths`
 - [x] ASGI entrypoint; run under uvicorn (SSE depends on it later) — verified:
       `uvicorn config.asgi:application` serves HTTP 200
-- [ ] Healthcheck endpoint `/healthz` (DB ping, version)
-- [ ] Dockerfile (multi-stage, uv-based, non-root) + docker-compose: `web` + `db`
-      (postgres 16) with healthchecks
+- [x] Healthcheck endpoint `/healthz` (DB ping, version) — contract in
+      `specs/core-health.md`; `psycopg[binary]` added for Postgres
+- [x] Dockerfile (multi-stage, uv-based, non-root) + docker-compose: `web` + `db`
+      (postgres 16) with healthchecks; legacy root Dockerfile/compose replaced
+      (legacy stack still runnable via dev servers until Phase 3 cutover)
 
 ## Exit criteria
-- [ ] `docker compose up` serves `/healthz` from Django + Postgres *(blocked on
-      Django scaffold)*
+- [x] `docker compose up` serves `/healthz` from Django + Postgres — verified:
+      web healthy, 200 `{"status": "ok", "version": ..., "database": "ok"}`;
+      migrations applied on boot
 - [x] CI checks pass locally: `ruff check`, `ruff format --check`, `ty check`,
       `pytest`, client `vite build` *(GitHub Actions run pending first push)*
 - [x] `cz` available; commit style documented
