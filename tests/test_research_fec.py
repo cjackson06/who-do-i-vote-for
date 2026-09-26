@@ -1,6 +1,5 @@
 """FEC adapter — contract: specs/research.md (FEC-*)."""
 
-
 from datetime import UTC
 
 import httpx2

@@ -73,7 +73,7 @@ class SwarmReport:
             return ResearchRun.Status.FAILED
         if self.topic_results and self.topics_failed == len(self.topic_results):
             return ResearchRun.Status.FAILED
-        if self.cells_failed or self.topics_failed or self.facts_dropped:
+        if self.cells_failed or self.topics_failed:
             return ResearchRun.Status.DEGRADED
         return ResearchRun.Status.COMPLETED
 
