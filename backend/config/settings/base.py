@@ -52,6 +52,13 @@ class Settings(BaseSettings):
     # settings spec: specs/settings.md (SETTINGS-4) — only toggleable prod
     # hardening flag; disable for local compose / trusted-TLS-proxy setups
     SECURE_SSL_REDIRECT: bool = True
+    # Research sources (specs/research.md, SETTINGS-6): unset key → adapter
+    # skipped with a system-check warning, never a crash
+    TAVILY_API_KEY: str | None = None
+    FEC_API_KEY: str | None = None
+    TAVILY_BASE_URL: str = "https://api.tavily.com"
+    FEC_BASE_URL: str = "https://api.open.fec.gov/v1"
+    FEC_DEMO: bool = False
 
     @field_validator("ALLOWED_HOSTS", mode="before")
     @classmethod
@@ -78,6 +85,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "apps.core",
     "apps.llm",
+    "apps.politicians",
+    "apps.research",
 ]
 
 MIDDLEWARE = [
@@ -144,6 +153,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = "static/"
+
+# Background tasks: django.tasks (specs/core-tasks.md).
+# base keeps the stock ImmediateBackend — correct (inline) execution for
+# scripts/shell/manage.py; local/prod override to the in-process ASGI
+# backend so server-triggered jobs don't block the request.
+TASKS = {
+    "default": {
+        "BACKEND": "django.tasks.backends.immediate.ImmediateBackend",
+    },
+}
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration

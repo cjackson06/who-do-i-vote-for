@@ -27,6 +27,14 @@ DATABASES = {
 # SETTINGS-4: sole env-toggleable hardening flag (local compose / TLS proxy)
 SECURE_SSL_REDIRECT = settings.SECURE_SSL_REDIRECT
 
+# In-process task backend for managed deployments (specs/core-tasks.md):
+# enqueue-and-return on the ASGI loop; single container, no worker process.
+TASKS = {
+    "default": {
+        "BACKEND": "apps.core.tasks.InProcessBackend",
+    },
+}
+
 
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

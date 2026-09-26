@@ -26,15 +26,17 @@ all four.
 class RawFinding(BaseModel):
     url: str
     title: str
-    content: str          # excerpt / chunk text supporting the claim
+    content: str  # excerpt / chunk text supporting the claim
     first_hand: bool
     published_date: date | None = None
     score: float | None = None
-    meta: dict = {}       # adapter-specific (fec totals, etc.)
+    meta: dict = {}  # adapter-specific (fec totals, etc.)
+
 
 class SourceAdapter(Protocol):
-    name: str                                   # "tavily_web" | "tavily_news" | "fec"
-    topic: str                                  # the single topic it covers
+    name: str  # "tavily_web" | "tavily_news" | "fec"
+    topic: str  # the single topic it covers
+
     def __init__(self, http_client: httpx2.AsyncClient) -> None: ...
     async def fetch(self, ref: PoliticianRef, topic: str) -> list[RawFinding]: ...
 ```
