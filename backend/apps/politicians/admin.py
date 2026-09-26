@@ -29,8 +29,8 @@ class FactAdmin(admin.ModelAdmin):
 
     @admin.display(description="politician")
     def politician_name(self, obj: Fact) -> str:
-        profile = obj.profile  # type: ignore[union-attr]
-        return str(profile.politician)
+        profile = obj.profile  # ty: relation descriptors are resolved at runtime
+        return str(profile.politician)  # ty: ignore[possibly-missing-attribute]
 
 
 @admin.register(SourceRecord)
