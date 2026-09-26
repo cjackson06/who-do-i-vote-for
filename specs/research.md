@@ -112,9 +112,11 @@ def available_adapters() -> list[SourceAdapter]   # reads Settings; skips unconf
 
 - **FEC-1 (MUST)** — resolve the candidate first:
   `GET /candidates/search/?q=<name>&api_key=<key>`; pick best match (exact
-  name normal order > party/state filter match); write result to
-  `politician.fec_candidate_id`. No plausible match → `AdapterError`
-  ("candidate not found"), never a fabricated id.
+  name normal order > party/state filter match). The adapter exposes this as
+  a dedicated `async resolve_candidate(ref) -> str` (or raises
+  `AdapterError` "candidate not found" — never a fabricated id); the
+  **swarm** persists the id to `politician.fec_candidate_id` (adapters never
+  touch ORM rows). Resolution happens once per run and is reused.
 - **FEC-2 (MUST)** — donations findings come from authorized-committee
   totals: GET `/candidate/<id>/committees/history/?cycle=<CUR>` →
   committee ids → `GET /committee/<id>/totals/?cycle=<CUR>` → one RawFinding

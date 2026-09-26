@@ -74,6 +74,13 @@ settings = Settings()
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = settings.SECRET_KEY
 
+# Research source config (specs/research.md, SETTINGS-6)
+TAVILY_API_KEY = settings.TAVILY_API_KEY
+FEC_API_KEY = settings.FEC_API_KEY
+TAVILY_BASE_URL = settings.TAVILY_BASE_URL
+FEC_BASE_URL = settings.FEC_BASE_URL
+FEC_DEMO = settings.FEC_DEMO
+
 # Application definition
 
 INSTALLED_APPS = [
