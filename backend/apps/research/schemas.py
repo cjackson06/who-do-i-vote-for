@@ -45,3 +45,18 @@ class FetchOutcome(BaseModel):
 
     findings: list[RawFinding] = Field(default_factory=list)
     calls: list[CallRecord] = Field(default_factory=list)
+
+
+class FactDraft(BaseModel):
+    """A summarizer-proposed fact with its floating citation."""
+
+    claim: str
+    quote: str = ""
+    source_url: str
+
+
+class TopicSummary(BaseModel):
+    """LLM structured output for one topic (SUMMARIZER-1)."""
+
+    summary: str
+    facts: list[FactDraft] = Field(default_factory=list)

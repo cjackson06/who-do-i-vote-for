@@ -1,35 +1,30 @@
-"""Admin for the politician cache (Phase 2: browse; Phase 3: trigger)."""
+"""Admin for the politician cache (specs/politicians.md).
+
+`Politician` itself is registered by apps.research.admin, which owns the
+"Run research" trigger (RUN-1) — a single registration, no override hack.
+"""
 
 from django.contrib import admin
 
-from .models import Fact, Politician, PoliticianProfile, SourceRecord
-
-
-@admin.register(Politician)
-class PoliticianAdmin(admin.ModelAdmin):
-    list_display = ("name", "party", "office", "state", "fec_candidate_id")
-    list_filter = ("party", "state")
-    search_fields = ("name", "fec_candidate_id")
-    readonly_fields = ("created_at", "updated_at")
-    inlines: list[type[admin.TabularInline]] = []
+from .models import Fact, PoliticianProfile, SourceRecord
 
 
 @admin.register(PoliticianProfile)
 class PoliticianProfileAdmin(admin.ModelAdmin):
-    list_display = ("politician", "scope", "generated_at")
+    list_display = ("politician", "scope", "generated_at", "research_run")
     list_filter = ("scope",)
     search_fields = ("politician__name",)
 
 
 @admin.register(Fact)
 class FactAdmin(admin.ModelAdmin):
-    list_display = ("topic", "claim", "politician_name")
+    list_display = ("topic", "claim", "politician_name", "source_record")
     list_filter = ("topic",)
     search_fields = ("claim", "profile__politician__name")
 
     @admin.display(description="politician")
     def politician_name(self, obj: Fact) -> str:
-        profile = obj.profile  # ty: relation descriptors are resolved at runtime
+        profile = obj.profile  # ty: relation descriptors resolve at runtime
         return str(profile.politician)  # ty: ignore[possibly-missing-attribute]
 
 

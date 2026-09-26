@@ -44,6 +44,13 @@ class PoliticianProfile(models.Model):
     scope = models.CharField(max_length=20, choices=Scope.choices)
     summary = models.TextField()
     generated_at = models.DateTimeField(auto_now_add=True)
+    research_run = models.ForeignKey(
+        "research.ResearchRun",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="profiles",
+    )
 
     class Meta:
         constraints = [
