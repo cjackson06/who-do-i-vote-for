@@ -101,7 +101,8 @@ class SourceRecord(models.Model):
         ordering = ["-retrieved_at"]
 
     def __str__(self) -> str:
-        return f"{self.source_type}/{self.topic}: {self.url[:60]}"
+        url = str(self.url)  # ty sees the descriptor type; runtime is a str
+        return f"{self.source_type}/{self.topic}: {url[:60]}"
 
 
 class Fact(models.Model):
@@ -128,4 +129,5 @@ class Fact(models.Model):
         ordering = ["profile", "topic", "pk"]
 
     def __str__(self) -> str:
-        return f"[{self.topic}] {self.claim[:60]}"
+        claim = str(self.claim)
+        return f"[{self.topic}] {claim[:60]}"

@@ -29,7 +29,8 @@ class FactAdmin(admin.ModelAdmin):
 
     @admin.display(description="politician")
     def politician_name(self, obj: Fact) -> str:
-        return str(obj.profile.politician)
+        profile = obj.profile  # type: ignore[union-attr]
+        return str(profile.politician)
 
 
 @admin.register(SourceRecord)

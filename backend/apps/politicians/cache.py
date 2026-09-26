@@ -42,7 +42,8 @@ def is_fresh(
 ) -> bool:
     """CACHE-2: cell is fresh if any record's fresh_until > now."""
     now = now or timezone.now()
-    return SourceRecord.objects.filter(
+    manager = SourceRecord.objects  # type: ignore[unresolved-attribute]
+    return manager.filter(
         politician_id=politician_id,
         source_type=source_type,
         topic=topic,
@@ -53,8 +54,9 @@ def is_fresh(
 def fresh_cells(politician_id: int, *, now: datetime | None = None) -> set[CacheCell]:
     """Distinct cells with at least one fresh record (CACHE-2, CACHE-4)."""
     now = now or timezone.now()
+    manager = SourceRecord.objects  # type: ignore[unresolved-attribute]
     rows = (
-        SourceRecord.objects.filter(
+        manager.filter(
             politician_id=politician_id,
             fresh_until__gt=now,
         )
@@ -67,10 +69,11 @@ def fresh_cells(politician_id: int, *, now: datetime | None = None) -> set[Cache
 def prune_stale(politician_id: int, *, now: datetime | None = None) -> int:
     """CACHE-5: delete records whose freshness lapsed beyond 2x TTL."""
     now = now or timezone.now()
+    manager = SourceRecord.objects  # type: ignore[unresolved-attribute]
     count = 0
     for source_type, ttl in TTL_DAYS.items():
         grace = ttl * PRUNE_GRACE_MULTIPLE
-        count += SourceRecord.objects.filter(
+        count += manager.filter(
             politician_id=politician_id,
             source_type=source_type,
             fresh_until__lt=now - grace,

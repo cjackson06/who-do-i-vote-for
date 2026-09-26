@@ -33,12 +33,28 @@ class RawFinding(BaseModel):
     meta: dict = {}  # adapter-specific (fec totals, etc.)
 
 
+class CallRecord(BaseModel):
+    """One outbound HTTP call made by an adapter (feeds SourceCall)."""
+
+    endpoint: str  # sanitized URL — api_key never included (RUN-3)
+    query: str
+    credits: int
+    latency_ms: int
+    status: Literal["ok", "error"]
+    error: str = ""
+
+
+class FetchOutcome(BaseModel):
+    findings: list[RawFinding]
+    calls: list[CallRecord]
+
+
 class SourceAdapter(Protocol):
     name: str  # "tavily_web" | "tavily_news" | "fec"
-    topic: str  # the single topic it covers
+    topics: tuple[str, ...]  # topics this instance covers
 
     def __init__(self, http_client: httpx2.AsyncClient) -> None: ...
-    async def fetch(self, ref: PoliticianRef, topic: str) -> list[RawFinding]: ...
+    async def fetch(self, ref: PoliticianRef, topic: str) -> FetchOutcome: ...
 ```
 
 `PoliticianRef` = JSON-safe pydantic `{"id", "name", "party", "office",
@@ -53,19 +69,22 @@ class SourceAdapter(Protocol):
 | `controversies` | `tavily_news` |
 | `donations` | `fec` |
 
-An adapter covers exactly one cell type; the registry expands to multiple
-cells per adapter (e.g. a future multi-topic news adapter) — orchestrator
-iterates the registry, it does not hard-code maps per adapter.
+An adapter covers one cell type per instance; the registry builds the
+instances (e.g. TavilyAdapter twice: `tavily_web` + `tavily_news`) — the
+orchestrator iterates the registry, it does not hard-code maps per adapter.
 
 ### Registry
 
 ```python
-def available_adapters() -> list[SourceAdapter]   # reads Settings; skips unconfigured
+def available_adapters(
+    http_client: httpx2.AsyncClient | None = None,
+) -> list[SourceAdapter]  # reads Settings; skips unconfigured
 ```
 
-- `TAVILY_API_KEY` set → `TavilyAdapter("tavily_web", topics=positions, voting_record)`
-  and `TavilyAdapter("tavily_news", topics=controversies)` (same class, two
-  instances).
+- `TAVILY_API_KEY` set → `TavilyAdapter` twice: instance `tavily_web`
+  (topics: positions, voting_record; tavily topic `general`) and instance
+  `tavily_news` (topics: controversies; tavily topic `news`, time_range
+  `year`).
 - `FEC_API_KEY` set (or `FEC_DEMO=1` for explicit DEMO_KEY opt-in) → `FECAdapter`.
 - Adding an adapter = new module implementing the protocol + one registry
   line. No orchestrator edits (exit criterion).
