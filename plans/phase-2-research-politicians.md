@@ -31,38 +31,43 @@ the cost lever for freemium and the substrate the analysis pipeline consumes.
   blocks the request; `transaction.on_commit` enqueue)
 
 ## Tasks
-- [ ] Specs first: `specs/core-tasks.md`, `specs/politicians.md`,
+- [x] Specs first: `specs/core-tasks.md`, `specs/politicians.md`,
       `specs/research.md`, settings-env rows
-- [ ] `InProcessBackend` + ASGI loop capture + `TASKS` settings + tests;
+- [x] `InProcessBackend` + ASGI loop capture + `TASKS` settings + tests;
       `uv add httpx2` (direct dep)
-- [ ] Models + migrations (unique constraints for cache identity) +
+- [x] Models + migrations (unique constraints for cache identity) +
       cache TTL helpers
-- [ ] `apps/politicians` admin registration (browse) + `apps/research`
+- [x] `apps/politicians` admin registration (browse) + `apps/research`
       models (`ResearchRun`, `SourceCall`) + admin
-- [ ] `SourceAdapter` protocol + `RawFinding` schema + registry
-- [ ] TavilyAdapter (search, exclude-domains, first-hand heuristic,
+- [x] `SourceAdapter` protocol + `RawFinding` schema + registry
+- [x] TavilyAdapter (search, exclude-domains, first-hand heuristic,
       credit accounting, one-retry on 429/5xx)
-- [ ] FECAdapter (candidate resolution → committees → totals)
-- [ ] Swarm orchestrator (fan-out, per-cell timeouts, partial-failure
+- [x] FECAdapter (candidate resolution → committees → totals)
+- [x] Swarm orchestrator (fan-out, per-cell timeouts, partial-failure
       tolerance)
-- [ ] Summarizer step: findings → per-topic `TopicSummary` (+facts with
+- [x] Summarizer step: findings → per-topic `TopicSummary` (+facts with
       citations) → profile `Fact`s; citation validation; prompts module in
       `apps/llm/prompts/`
-- [ ] Cache freshness/TTL logic + targeted refresh (`force_refresh`)
-- [ ] Admin trigger: Politician "Run research" action → `ResearchRun`(queued)
+- [x] Cache freshness/TTL logic + targeted refresh (`force_refresh`)
+- [x] Admin trigger: Politician "Run research" action → `ResearchRun`(queued)
       → enqueue task on commit; runs/runs' cost `SourceCall` visible in admin
-- [ ] Tests: adapter fixtures (recorded HTTP via MockTransport), swarm fault
+- [x] Tests: adapter fixtures (recorded HTTP via MockTransport), swarm fault
       injection, TTL behavior, backend semantics — all offline
-- [ ] Cost logging tie-in: Tavily credits per run recorded alongside
+- [x] Cost logging tie-in: Tavily credits per run recorded alongside
       `ModelCall` rows
 - [ ] Live smoke (keys): admin-trigger a real research run; re-run shows
       cache hit (~0 Tavily calls)
 
 ## Exit criteria
-- [ ] Researching the same politician twice costs ~zero Tavily calls the
-      second time (verified by test + live smoke)
-- [ ] Every stored `Fact` links to a `SourceRecord` with a first-hand flag
-- [ ] Adding an adapter = implement protocol + register (no orchestrator
+- [x] Researching the same politician twice costs ~zero Tavily calls the
+      second time (verified by test; live smoke pending)
+- [x] Every stored `Fact` links to a `SourceRecord` with a first-hand flag
+- [x] Adding an adapter = implement protocol + register (no orchestrator
       changes)
-- [ ] Trigger-to-result flow fully in admin (no data CLI)
+- [x] Trigger-to-result flow fully in admin (no data CLI)
+
+> Implementation notes: swarm DB access is Django-native async ORM
+> throughout (SWARM-6) — mixing sync-fixture connections with
+> executor-connection writes deadlocks sqlite (documented in the spec and
+> tests). Test DB is file-backed (`TEST NAME`) for realistic lock behavior.
 
