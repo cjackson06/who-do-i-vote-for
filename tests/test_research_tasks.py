@@ -18,7 +18,9 @@ from apps.research.topics import TOPICS
 
 pytestmark = pytest.mark.django_db(transaction=True)
 
-TEST_PASSWORD = "test-only-password"
+# S105-exempt: Django's password validator rejects real-looking strings;
+# this is a throwaway test-fixture credential, not a secret.
+TEST_PASSWORD = "test-only-password"  # noqa: S105
 
 
 class FakeAdapter:
@@ -87,8 +89,15 @@ def summarizer_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture(autouse=True)
 def clean_db(db) -> None:
-    Politician.objects.all().delete()
-    ResearchRun.objects.all().delete()
+    """Leaf-first cleanup (Fact→SourceRecord is PROTECT). Sync fixture:
+    this module's TestCase tests write on the main-thread connection."""
+    from apps.politicians.models import Fact, PoliticianProfile, SourceRecord
+
+    Fact.objects.all().delete()  # type: ignore[unresolved-attribute]
+    SourceRecord.objects.all().delete()  # type: ignore[unresolved-attribute]
+    PoliticianProfile.objects.all().delete()  # type: ignore[unresolved-attribute]
+    ResearchRun.objects.all().delete()  # type: ignore[unresolved-attribute]
+    Politician.objects.all().delete()  # type: ignore[unresolved-attribute]
 
 
 # RUN-2: task lifecycle

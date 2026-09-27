@@ -14,7 +14,7 @@ from asgiref.sync import sync_to_async
 from django.db.models import Manager
 
 from apps.llm.client import LLMClient
-from apps.politicians.cache import CacheCell, fresh_cells, fresh_until
+from apps.politicians.cache import CacheCell, afresh_cells, fresh_until
 from apps.politicians.models import Politician, SourceRecord
 from apps.politicians.services import NewFact, replace_profile
 
@@ -110,7 +110,7 @@ async def research_politician(
         adapters = available_adapters(http_client)
 
     # SWARM-1: plan cells; skip fresh ones (CACHE-4)
-    fresh = await sync_to_async(fresh_cells)(politician_id)
+    fresh = await afresh_cells(politician_id)
     cells: list[tuple[SourceAdapter, str]] = []
     cache_hits = 0
     for adapter in adapters:
@@ -148,11 +148,11 @@ async def research_politician(
     )
 
     # SWARM-4: persist records + call rows per cell
-    now = await sync_to_async(_utcnow)()
+    now = _utcnow()
     for result in results:
         if result.outcome is not None:
-            await sync_to_async(_persist_cell)(politician_id, result, now)
-        await sync_to_async(_persist_calls)(run_id, result)
+            await _persist_cell(politician_id, result, now)
+        await _persist_calls(run_id, result)
         if result.ok:
             report.cells_ok += 1
         else:
@@ -166,7 +166,7 @@ async def research_politician(
 
     # Summarize every topic in the run over the cell's current records
     for topic in topics:
-        records = await sync_to_async(_topic_records)(politician_id, topic)
+        records = await _topic_records(politician_id, topic)
         if not records:
             report.cell_errors.append(f"no records to summarize: {topic}")
             continue
@@ -206,7 +206,7 @@ async def research_politician(
             research_run_id=run_id,
         )
 
-    await sync_to_async(_finalize_run)(run_id, report)
+    await _finalize_run(run_id, report)
     return report
 
 
@@ -216,18 +216,18 @@ def _utcnow() -> datetime:
     return timezone.now()
 
 
-def _persist_cell(
+async def _persist_cell(
     politician_id: int, result: CellResult, now: datetime
 ) -> list[SourceRecord]:
     """SWARM-4: one SourceRecord per finding, deduped by cell identity."""
     if result.outcome is None:  # callers only persist cells with outcomes
         return []
     manager = SourceRecord.objects  # type: ignore[unresolved-attribute]
-    records: list[SourceRecord] = []
+    persisted: list[SourceRecord] = []
     for finding in result.outcome.findings:
         if not finding.url:
             continue
-        record, _ = manager.update_or_create(
+        record, _ = await manager.aupdate_or_create(
             politician_id=politician_id,
             source_type=result.adapter_name,
             topic=result.topic,
@@ -242,11 +242,11 @@ def _persist_cell(
                 "fresh_until": fresh_until(result.adapter_name, now=now),
             },
         )
-        records.append(record)
-    return records
+        persisted.append(record)
+    return persisted
 
 
-def _persist_calls(run_id: int, result: CellResult) -> None:
+async def _persist_calls(run_id: int, result: CellResult) -> None:
     """RUN-3/SWARM-4: one SourceCall row per outbound HTTP call (ok or error)."""
     calls: list[CallRecord] = []
     if result.outcome is not None:
@@ -264,7 +264,7 @@ def _persist_calls(run_id: int, result: CellResult) -> None:
                 error=result.error,
             )
         )
-    _calls().bulk_create(
+    await _calls().abulk_create(
         [
             SourceCall(
                 run_id=run_id,
@@ -282,32 +282,38 @@ def _persist_calls(run_id: int, result: CellResult) -> None:
     )
 
 
-def _topic_records(politician_id: int, topic: str) -> list[SourceRecord]:
+async def _topic_records(politician_id: int, topic: str) -> list[SourceRecord]:
     manager = SourceRecord.objects  # type: ignore[unresolved-attribute]
-    return list(
-        manager.filter(politician_id=politician_id, topic=topic).order_by(
-            "-first_hand", "-retrieved_at"
-        )
-    )
+    return [
+        record
+        async for record in manager.filter(
+            politician_id=politician_id, topic=topic
+        ).order_by("-first_hand", "-retrieved_at")
+    ]
 
 
-def _finalize_run(run_id: int, report: SwarmReport) -> None:
+async def _finalize_run(run_id: int, report: SwarmReport) -> None:
     """RUN-2/RUN-4: terminal status, stats, credits."""
-    run = _runs().filter(pk=run_id).first()
+    run = await _runs().filter(pk=run_id).afirst()
     if run is None:
         return
     run.status = report.status
     run.stats = report.as_stats()
-    run.credits = sum(call.credits for call in run.source_calls.all())
+    credits = 0
+    async for call in run.source_calls.all():
+        credits += call.credits
+    run.credits = credits
     run.finished_at = _utcnow()
     if report.cell_errors:
         run.error = "\n".join(report.cell_errors)[:2000]
-    run.save(update_fields=["status", "stats", "credits", "finished_at", "error"])
+    await run.asave(
+        update_fields=["status", "stats", "credits", "finished_at", "error"]
+    )
 
 
-def load_ref(politician_id: int) -> PoliticianRef:
+async def load_ref(politician_id: int) -> PoliticianRef:
     """JSON-safe ref for the task boundary (adapters never touch ORM)."""
-    politician = Politician.objects.get(  # type: ignore[unresolved-attribute]
+    politician = await Politician.objects.aget(  # type: ignore[unresolved-attribute]
         pk=politician_id
     )
     return PoliticianRef(

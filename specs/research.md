@@ -177,8 +177,14 @@ async def research_politician(
   `queued → running → completed|degraded|failed` happens in the task
   (RUN-2), but the swarm itself is exception-safe: any unexpected error is
   recorded and re-raised for the task wrapper to mark `failed`.
-- **SWARM-6 (SHOULD)** — politician ORM access via `sync_to_async`;
-  findings→DB persistence batches transactionally per cell.
+- **SWARM-6 (MUST)** — all swarm DB access uses Django's native async ORM
+  (`acreate`/`aupdate_or_create`/`abulk_create`/`afirst`/`asave`, async
+  iteration) so writes stay on the event loop's single thread-sensitive
+  executor connection. `transaction.atomic` blocks (profile regeneration)
+  are the exception: they run via `sync_to_async` and complete before
+  returning. Tests MUST follow the same pattern (async fixtures) — mixing
+  a sync-fixture connection with executor-connection writes deadlocks
+  sqlite.
 
 ### Summarizer step (`summarize.py`, prompt `apps/llm/prompts/research_summarizer.py`)
 

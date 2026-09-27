@@ -66,6 +66,16 @@ def fresh_cells(politician_id: int, *, now: datetime | None = None) -> set[Cache
     return {CacheCell(source_type, topic) for source_type, topic in rows}
 
 
+async def afresh_cells(
+    politician_id: int, *, now: datetime | None = None
+) -> set[CacheCell]:
+    """Async-ORM twin of fresh_cells (SWARM-6: event-loop DB access)."""
+    now = now or timezone.now()
+    manager = SourceRecord.objects  # type: ignore[unresolved-attribute]
+    rows = manager.filter(politician_id=politician_id, fresh_until__gt=now)
+    return {CacheCell(record.source_type, record.topic) async for record in rows}
+
+
 def prune_stale(politician_id: int, *, now: datetime | None = None) -> int:
     """CACHE-5: delete records whose freshness lapsed beyond 2x TTL."""
     now = now or timezone.now()

@@ -110,3 +110,13 @@ ignore = [
 
 [tool.ty.environment]
 extra-paths = ["backend"]
+
+# Django model managers resolve at runtime (`Model.objects`); tests access
+# them directly for assertions. The backend code pins each access with a
+# targeted `# type: ignore`, but the volume in tests makes a per-path
+# override the maintainable choice (mirrors the ruff per-file-ignores).
+[[tool.ty.overrides]]
+include = ["tests/**"]
+
+[tool.ty.overrides.rules]
+unresolved-attribute = "ignore"

@@ -27,13 +27,28 @@ from apps.research.topics import TOPICS
 
 
 @pytest.fixture(autouse=True)
-def _clean_corpus(db) -> None:
-    """Transactional tests commit — clear the corpus before each test."""
-    from apps.llm.models import ModelCall
+async def _clean_corpus(db):  # ty: yield-style async fixture
+    """Transactional tests commit — clear the corpus before AND after each
+    test so later modules (e.g. test_llm_client) stay hermetic.
 
-    ModelCall.objects.all().delete()  # type: ignore[unresolved-attribute]
-    Politician.objects.all().delete()  # type: ignore[unresolved-attribute]
-    ResearchRun.objects.all().delete()  # type: ignore[unresolved-attribute]
+    Async fixture: the deletes then share the event-loop executor
+    connection with the swarm's writes (cross-thread sqlite deadlocks
+    otherwise). Leaf-first ordering: Fact→SourceRecord is PROTECT.
+    """
+    from apps.llm.models import ModelCall
+    from apps.politicians.models import Fact, PoliticianProfile, SourceRecord
+
+    async def wipe() -> None:
+        await Fact.objects.all().adelete()  # type: ignore[unresolved-attribute]
+        await SourceRecord.objects.all().adelete()  # type: ignore[unresolved-attribute]
+        await PoliticianProfile.objects.all().adelete()  # type: ignore[unresolved-attribute]
+        await ResearchRun.objects.all().adelete()  # type: ignore[unresolved-attribute]
+        await ModelCall.objects.all().adelete()  # type: ignore[unresolved-attribute]
+        await Politician.objects.all().adelete()  # type: ignore[unresolved-attribute]
+
+    await wipe()
+    yield
+    await wipe()
 
 
 NOW = timezone.now()
@@ -108,13 +123,14 @@ class FakeAdapter:
 
 
 @pytest.fixture
-def politician(db) -> Politician:
-    return Politician.objects.create(name="Jane Doe", party="DEM", state="PA")
+async def politician(db) -> Politician:
+    """Async fixture: row creation shares the swarm's executor connection."""
+    return await Politician.objects.acreate(name="Jane Doe", party="DEM", state="PA")
 
 
 @pytest.fixture
-def run(db, politician) -> ResearchRun:
-    return ResearchRun.objects.create(politician=politician, topics=list(TOPICS))
+async def run(db, politician) -> ResearchRun:
+    return await ResearchRun.objects.acreate(politician=politician, topics=list(TOPICS))
 
 
 @pytest.fixture
@@ -409,9 +425,7 @@ async def test_summarizer_error_marks_topic_failed(db, politician, run) -> None:
 
     # LLM that always returns malformed JSON → StructuredOutputError
     def handler(request: httpx2.Request) -> httpx2.Response:
-        return {"status": 200, "body": "{not json"}.get("status") or httpx2.Response(
-            200, json=_completion("definitely not json")
-        )
+        return httpx2.Response(200, json=_completion("definitely not json"))
 
     llm = _llm_with(handler)
     report = await research_politician(

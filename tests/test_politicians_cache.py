@@ -1,6 +1,7 @@
 """Politician cache — contract: specs/politicians.md (POLITICIAN-*, CACHE-*, SOURCE-*)."""
 
 from datetime import UTC, datetime, timedelta
+from typing import cast
 
 import pytest
 from django.db import IntegrityError
@@ -94,15 +95,14 @@ def test_is_fresh_boundary(db, politician) -> None:
 
     record = _record(politician)  # web → 30d
     assert is_fresh(politician.id, "tavily_web", "positions", now=NOW)
-    assert not is_fresh(
-        politician.id, "tavily_web", "positions", now=record.fresh_until
-    )
+    expiry = cast(datetime, record.fresh_until)
+    assert not is_fresh(politician.id, "tavily_web", "positions", now=expiry)
     # one second before expiry is still fresh
     assert is_fresh(
         politician.id,
         "tavily_web",
         "positions",
-        now=record.fresh_until - timedelta(seconds=1),
+        now=expiry - timedelta(seconds=1),
     )
 
 
@@ -137,7 +137,8 @@ def test_url_hash(db, politician) -> None:
     import hashlib
 
     record = _record(politician)
-    assert record.url_hash == hashlib.sha256(record.url.encode()).hexdigest()
+    url = cast(str, record.url)
+    assert record.url_hash == hashlib.sha256(url.encode()).hexdigest()
 
 
 def test_source_cell_unique(db, politician) -> None:
