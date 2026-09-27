@@ -6,11 +6,17 @@
 
 ## Current state (transitional)
 
-- Legacy backend: Google ADK YAML agents (`my_politician/`, `political_profiler/`)
-  served by the stock `adk api_server` — no application code, in-memory
-  sessions, CORS `*`.
+- Phase 2 shipped: `apps/politicians` + `apps/research` — source adapters
+  (Tavily web/news, FEC donations), research swarm, cited politician profile
+  cache with TTL, research runs + cost log, Django admin browsing **and**
+  the staff "Run research" trigger (Django admin only; no user pages yet).
+- Background execution: Django 6 native `django.tasks` with the in-process
+  ASGI backend (`apps/core.tasks.InProcessBackend`).
+- Legacy backend: Google ADK YAML agents (`my_politician/`,
+  `political_profiler/`) served by the stock `adk api_server` — no
+  application code, in-memory sessions, CORS `*`.
 - Legacy frontend: React/Vite (`client/`) speaking the raw ADK protocol.
-- Both are deleted at the Phase 3 cutover.
+- Both legacy parts are deleted at the Phase 3 cutover.
 
 ## Target
 
@@ -48,6 +54,7 @@ framework, no DRF.
 | Models | Raw OpenAI-compatible client; per-role `{base_url, api_key, model}` server config. Hosted: env-only, never user-facing |
 | Search | Tavily + FEC API in v1 behind a pluggable `SourceAdapter` interface |
 | Research | Parallel swarm (fan-out per candidate × source) → cited summaries → DB-cached politician profiles (TTL) |
+| Background execution | django.tasks (Django 6 native) + in-process ASGI backend in `apps/core`; admin/web triggers only — no data-management CLI; durable backend swap later is settings-only |
 | Pipeline UX | SSE step progress; final structured result |
 | Users | Anonymous by default; optional account (session-cookie auth, claim flow). No JWT |
 | Billing | Deferred; entitlement hooks designed in now |
