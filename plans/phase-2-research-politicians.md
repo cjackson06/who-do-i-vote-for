@@ -55,12 +55,19 @@ the cost lever for freemium and the substrate the analysis pipeline consumes.
       injection, TTL behavior, backend semantics — all offline
 - [x] Cost logging tie-in: Tavily credits per run recorded alongside
       `ModelCall` rows
-- [ ] Live smoke (keys): admin-trigger a real research run; re-run shows
+- [x] Live smoke (keys): admin-trigger a real research run; re-run shows
       cache hit (~0 Tavily calls)
+      — verified 2026-09-28 with Tavily + llama.cpp (`gemma4-qat:12B`):
+      run 6 fetched 3 cells (3 credits, 30 records), summarizer failed on a
+      down LLM endpoint → run `failed`, no profile (POLITICIAN-3b ✓), and it
+      exposed LLM-CLIENT-6/7 gap (fixed); run 7 hit all 3 cells from cache
+      (0 credits, 0 new calls), 3 native-json_schema summarizer calls
+      (attempts=1 each), 23 cited facts stored, profile written, run
+      `completed`.
 
 ## Exit criteria
 - [x] Researching the same politician twice costs ~zero Tavily calls the
-      second time (verified by test; live smoke pending)
+      second time (verified by test + live smoke)
 - [x] Every stored `Fact` links to a `SourceRecord` with a first-hand flag
 - [x] Adding an adapter = implement protocol + register (no orchestrator
       changes)

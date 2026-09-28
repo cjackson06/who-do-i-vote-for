@@ -96,7 +96,7 @@ Goals of this modernization:
 |---|---|---|---|
 | 0 | [phase-0-foundation.md](phase-0-foundation.md) | Docs, tooling (cz, GHA), Django scaffold, Docker | done (GHA run pending first push) |
 | 1 | [phase-1-llm-core.md](phase-1-llm-core.md) | Model-agnostic LLM layer, role config, ModelCall log | done |
-| 2 | [phase-2-research-politicians.md](phase-2-research-politicians.md) | Source adapters, research swarm, politician cache | in progress |
+| 2 | [phase-2-research-politicians.md](phase-2-research-politicians.md) | Source adapters, research swarm, politician cache | done (live smoke verified 2026-09-28) |
 | 3 | [phase-3-v1-cutover.md](phase-3-v1-cutover.md) | Analysis pipeline, SSE, HTMX frontend, delete ADK+React | pending — pipeline runner builds on the django.tasks seam |
 | 4 | [phase-4-accounts-saves.md](phase-4-accounts-saves.md) | Accounts, claim flow, history, entitlement hooks | pending |
 | 5 | [phase-5-eval-harness.md](phase-5-eval-harness.md) | Golden datasets, LLM judge, CLI + staff dashboard | pending |

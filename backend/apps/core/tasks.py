@@ -61,9 +61,11 @@ class InProcessBackend(BaseTaskBackend):
         if loop is None or loop.is_closed():
             raise ImproperlyConfigured(
                 "apps.core.tasks.InProcessBackend requires a captured ASGI "
-                "event loop: run under the Django ASGI server (uvicorn), or "
-                "call apps.core.eventloop.capture_event_loop(loop) in tests "
-                f"(task {task.module_path!r} was enqueued without a loop)."
+                "event loop: start the server with `just server` (uvicorn — "
+                "ASGI). `manage.py runserver` is WSGI and cannot run "
+                "background tasks. In tests, call "
+                "apps.core.eventloop.capture_event_loop(loop) first. "
+                f"(Task {task.module_path!r} was enqueued without a loop.)"
             )
         loop.call_soon_threadsafe(self._spawn, task, result)
         return result

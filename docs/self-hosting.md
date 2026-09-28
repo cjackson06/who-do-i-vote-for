@@ -61,6 +61,7 @@ Behavior (contract: [`specs/llm.md`](../specs/llm.md)):
 
 | Provider | `BASE_URL` | Notes |
 |---|---|---|
+| llama.cpp (`llama-server`) | `http://localhost:8080/v1` | no key needed; native `json_schema` support (grammar-enforced). Reasoning models emit thinking before the JSON — expect slower calls; leave `max_tokens` unset |
 | Ollama | `http://localhost:11434/v1` (from compose: `http://host.docker.internal:11434/v1`) | no API key needed |
 | vLLM | `http://your-vllm-host:8000/v1` | `--served-model-name` is your `MODEL` |
 | LiteLLM proxy | `http://your-litellm:4000/v1` | set `LLM_API_KEY` to the proxy key |

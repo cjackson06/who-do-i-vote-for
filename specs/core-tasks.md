@@ -78,11 +78,13 @@ DB access inside task bodies uses `sync_to_async` (or async ORM where suitable).
   result. A task exception MUST be captured into
   `result.errors[0]` (classname + traceback) and MUST NOT propagate to the
   event loop or crash the process.
-- **TASKBACKEND-3 (MUST)** — `enqueue()` from a sync context (no captured
+- **TASKBACKEND-3 (MUST)** — `enqueue()` from a sync context with no captured
   loop — e.g. a script against a `local.py`/`prod.py` settings module outside
-  the ASGI server) MUST raise `ImproperlyConfigured` explaining that
-  `InProcessBackend` requires the ASGI server (or the `capture_event_loop`
-  hook). No silent inline fallback.
+  the ASGI server, or Django's WSGI `runserver` — MUST raise
+  `ImproperlyConfigured` pointing at the ASGI server (`just server` /
+  uvicorn) or the `capture_event_loop` hook. No silent inline fallback;
+  WSGI contexts are unsupported for enqueue by design (dev must model prod;
+  SSE in Phase 3 requires the ASGI loop).
 - **TASKBACKEND-4 (MUST)** — `supports_async_task = True`; the backend awaits
   coroutine task functions via `task.acall(...)`. Priority ordering is NOT
   supported (`supports_priority = False`); execution order follows spawn order.
