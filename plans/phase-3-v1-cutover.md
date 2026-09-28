@@ -31,6 +31,10 @@ end-to-end. The big phase.
 
 ### Frontend
 - [ ] Base template + Tailwind setup (replaces shadcn/react)
+      — **Tailwind pipeline + project-level templates pulled forward to
+      [Phase 2.5](phase-2-5-staff-console.md)** (staff base shell);
+      Phase 3 adds the public-facing base and wires SSE into the reserved
+      run-status fragment ids from that phase (CONSOLE-6)
 - [ ] Pages: welcome, questionnaire, candidate selection, live progress (HTMX
       SSE extension), results (compatibility cards, cited reasons)
 - [ ] TS island only if needed (result charts)
