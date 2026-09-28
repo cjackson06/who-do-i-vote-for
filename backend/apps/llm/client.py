@@ -224,6 +224,8 @@ class LLMClient:
         async def log_outcome(
             status: str, error_text: str, final_usage: CompletionUsage | None
         ) -> None:
+            nonlocal logged
+            logged = True
             await self._log(
                 role=role,
                 config=config,
@@ -237,62 +239,73 @@ class LLMClient:
                 prompt_version=prompt_version,
             )
 
-        for attempt in range(1, attempts + 1):
-            attempts_made = attempt
-            if json_schema_ok:
-                # LLM-CLIENT-2: native structured output first
-                request_messages = messages + retry_extra
-                response_kwargs: dict[str, Any] = {
-                    "response_format": {
-                        "type": "json_schema",
-                        "json_schema": {
-                            "name": schema.__name__,
-                            "strict": False,
-                            "schema": schema.model_json_schema(),
-                        },
-                    }
-                }
-            else:
-                # LLM-CLIENT-3: JSON-mode fallback (schema in messages)
-                request_messages = messages + schema_note + retry_extra
-                response_kwargs = {"response_format": {"type": "json_object"}}
-
-            try:
-                response = await sdk.chat.completions.create(
-                    model=config.model,
-                    messages=request_messages,  # type: ignore[arg-type]
-                    temperature=temperature,
-                    max_tokens=max_tokens,
-                    **response_kwargs,
-                )
-            except (BadRequestError, NotFoundError) as exc:
+        logged = False
+        try:
+            for attempt in range(1, attempts + 1):
+                attempts_made = attempt
                 if json_schema_ok:
-                    # LLM-CLIENT-3: transparent downgrade; consumes the attempt
-                    self._json_schema_ok[role] = False
-                    json_schema_ok = False
-                    response_format = ModelCall.ResponseFormat.JSON_MODE
-                    last_error = f"json_schema rejected by endpoint: {exc}"[
-                        :ERROR_TEXT_LIMIT
-                    ]
+                    # LLM-CLIENT-2: native structured output first
+                    request_messages = messages + retry_extra
+                    response_kwargs: dict[str, Any] = {
+                        "response_format": {
+                            "type": "json_schema",
+                            "json_schema": {
+                                "name": schema.__name__,
+                                "strict": False,
+                                "schema": schema.model_json_schema(),
+                            },
+                        }
+                    }
+                else:
+                    # LLM-CLIENT-3: JSON-mode fallback (schema in messages)
+                    request_messages = messages + schema_note + retry_extra
+                    response_kwargs = {"response_format": {"type": "json_object"}}
+
+                try:
+                    response = await sdk.chat.completions.create(
+                        model=config.model,
+                        messages=request_messages,  # type: ignore[arg-type]
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        **response_kwargs,
+                    )
+                except (BadRequestError, NotFoundError) as exc:
+                    if json_schema_ok:
+                        # LLM-CLIENT-3: transparent downgrade; consumes the attempt
+                        self._json_schema_ok[role] = False
+                        json_schema_ok = False
+                        response_format = ModelCall.ResponseFormat.JSON_MODE
+                        last_error = f"json_schema rejected by endpoint: {exc}"[
+                            :ERROR_TEXT_LIMIT
+                        ]
+                        continue
+                    # JSON-mode call itself rejected → propagate (LLM-CLIENT-6)
+                    error_text = f"{type(exc).__name__}: {exc}"[:ERROR_TEXT_LIMIT]
+                    await log_outcome(ModelCall.Status.ERROR, error_text, usage)
+                    raise
+
+                raw = response.choices[0].message.content or ""
+                usage = response.usage
+                last_raw = raw
+                try:
+                    # LLM-CLIENT-4: client-side parse for both modes
+                    parsed = schema.model_validate(json.loads(raw))
+                except (json.JSONDecodeError, ValidationError) as exc:
+                    # LLM-CLIENT-4/5: re-ask with the invalid output + error
+                    last_error = f"{type(exc).__name__}: {exc}"[:ERROR_TEXT_LIMIT]
+                    retry_extra = _retry_messages(raw, last_error)
                     continue
-                # JSON-mode call itself rejected → propagate (LLM-CLIENT-6)
+                await log_outcome(ModelCall.Status.OK, "", usage)
+                return parsed
+        except Exception as exc:
+            # LLM-CLIENT-6/7: any other SDK/transport error propagates as-is —
+            # but only after exactly one error row is written. Paths that
+            # already logged (JSON-mode rejection, exhaustion) skip via the
+            # guard; cancellation (BaseException) intentionally writes none.
+            if not logged:
                 error_text = f"{type(exc).__name__}: {exc}"[:ERROR_TEXT_LIMIT]
                 await log_outcome(ModelCall.Status.ERROR, error_text, usage)
-                raise
-
-            raw = response.choices[0].message.content or ""
-            usage = response.usage
-            last_raw = raw
-            try:
-                # LLM-CLIENT-4: client-side parse for both modes
-                parsed = schema.model_validate(json.loads(raw))
-            except (json.JSONDecodeError, ValidationError) as exc:
-                # LLM-CLIENT-4/5: re-ask with the invalid output + error
-                last_error = f"{type(exc).__name__}: {exc}"[:ERROR_TEXT_LIMIT]
-                retry_extra = _retry_messages(raw, last_error)
-                continue
-            await log_outcome(ModelCall.Status.OK, "", usage)
-            return parsed
+            raise
 
         message = (
             f"structured output for role {role!r} failed after "

@@ -32,9 +32,11 @@ test *ARGS:
 manage *ARGS:
     uv run backend/manage.py {{ARGS}}
 
-# Django dev server (config.settings.local)
+# Django dev server (config.settings.local) — ASGI via uvicorn, like prod.
+# `manage.py runserver` is WSGI: no event loop, so background tasks
+# (django.tasks InProcessBackend) and Phase 3 SSE cannot run on it.
 server:
-    uv run backend/manage.py runserver
+    uv run uvicorn config.asgi:application --host 127.0.0.1 --port 8000 --app-dir backend --reload --reload-dir backend
 
 # Apply migrations
 migrate:

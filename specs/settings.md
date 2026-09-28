@@ -31,6 +31,10 @@ vars, so `apps/*` can also read the same values via `os.getenv`).
 | `ALLOWED_HOSTS` | — | comma-separated CSV (never JSON); localhost defaults in local |
 | `DATABASE_URL` | `sqlite://backend/db.sqlite3` | `postgres://…` for hosted/self-host compose |
 | `SECURE_SSL_REDIRECT` | `true` | set `false` only for local compose / non-TLS deployments behind a trusted proxy |
+| `TAVILY_API_KEY` | unset | research sources (Phase 2): when unset, the Tavily adapter is skipped with a `research.W001` check warning |
+| `FEC_API_KEY` | unset | openFEC key; when unset the FEC adapter is skipped (`research.W002`). `DEMO_KEY` only via explicit `FEC_DEMO=1` |
+| `TAVILY_BASE_URL` / `FEC_BASE_URL` | vendor defaults | endpoint overrides for self-hosted proxies/tests |
+| `FEC_DEMO` | unset | set `1` to explicitly opt into the rate-limited `DEMO_KEY` mode |
 
 `APP_VERSION` is read directly (not typed `Settings`) by `/healthz` — see
 `specs/core-health.md`.
@@ -40,6 +44,10 @@ vars, so `apps/*` can also read the same values via `os.getenv`).
 - **SETTINGS-1 (MUST)** — every deployment value MUST flow through the typed
   `Settings` class (or `os.getenv` for the open-ended `LLM_*` family); no
   scattered `os.environ` reads for these vars elsewhere.
+- **SETTINGS-6 (MUST)** — research-source keys (`TAVILY_API_KEY`,
+  `FEC_API_KEY`) and their base-URL overrides flow through the typed
+  `Settings` class as nullable fields; missing keys mean the corresponding
+  adapter is disabled (see `specs/research.md`), never a crash.
 - **SETTINGS-2 (MUST)** — `ALLOWED_HOSTS` MUST accept CSV
   (`example.com,www.example.com`), not JSON, since it is human-authored env.
 - **SETTINGS-3 (MUST)** — `config.settings.prod` MUST raise

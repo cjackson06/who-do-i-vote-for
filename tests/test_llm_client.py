@@ -203,6 +203,52 @@ async def test_transport_error_propagates_after_logging(
     assert "test-key" not in row.error  # LLM-CONFIG-3
 
 
+async def test_structured_transport_error_logs_row(
+    llm_env, llm_testkit, get_model_calls
+) -> None:
+    """LLM-CLIENT-6/7: transport error on the structured path still writes
+    exactly one error row, then propagates as-is (smoke-tested failure)."""
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
+            500, json={"error": {"message": "backend boom"}}, request=request
+        )
+
+    client = llm_testkit.make_client(handler)
+    with pytest.raises(openai.InternalServerError):
+        await client.complete(
+            "researcher", [{"role": "user", "content": "hi"}], schema=Out
+        )
+
+    [row] = await get_model_calls()
+    assert row.status == "error"
+    assert row.response_format == "json_schema"
+    assert row.attempts == 1
+    assert "backend boom" in row.error
+
+
+async def test_structured_connection_error_logs_row(
+    llm_env, llm_testkit, get_model_calls
+) -> None:
+    """LLM-CLIENT-6/7: connect-level failure on the structured path — the
+    exact mode that hit production smoke (endpoint down) — writes the row."""
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        raise httpx2.ConnectError("connection refused", request=request)
+
+    client = llm_testkit.make_client(handler)
+    with pytest.raises(openai.APIConnectionError):
+        await client.complete(
+            "researcher", [{"role": "user", "content": "hi"}], schema=Out
+        )
+
+    [row] = await get_model_calls()
+    assert row.status == "error"
+    assert row.response_format == "json_schema"
+    assert row.attempts == 1
+    assert row.total_tokens is None
+
+
 async def test_role_not_configured_makes_no_request(
     llm_env, monkeypatch, llm_testkit, get_model_calls
 ) -> None:

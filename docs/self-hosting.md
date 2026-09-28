@@ -61,6 +61,7 @@ Behavior (contract: [`specs/llm.md`](../specs/llm.md)):
 
 | Provider | `BASE_URL` | Notes |
 |---|---|---|
+| llama.cpp (`llama-server`) | `http://localhost:8080/v1` | no key needed; native `json_schema` support (grammar-enforced). Reasoning models emit thinking before the JSON — expect slower calls; leave `max_tokens` unset |
 | Ollama | `http://localhost:11434/v1` (from compose: `http://host.docker.internal:11434/v1`) | no API key needed |
 | vLLM | `http://your-vllm-host:8000/v1` | `--served-model-name` is your `MODEL` |
 | LiteLLM proxy | `http://your-litellm:4000/v1` | set `LLM_API_KEY` to the proxy key |
@@ -70,7 +71,30 @@ Behavior (contract: [`specs/llm.md`](../specs/llm.md)):
 **Anthropic note:** the native Anthropic API is not OpenAI-compatible. Route
 Claude models through a compatible proxy (LiteLLM, OpenRouter, or Ollama).
 
-## Search (Phase 2)
+## Research sources (Phase 2)
 
-A Tavily API key (`TAVILY_API_KEY`) is required for live research;
-the FEC donations source is keyless.
+Research is triggered from the Django admin (`/admin/`) by staff: select
+politicians → **Run research**. Each run fetches from the configured sources
+in parallel, summarizes with the `summarizer` model role, and caches cited
+facts in the database (with per-source TTL). Re-running a recently-researched
+politician costs ~zero paid calls — the cache absorbs it.
+
+| Variable | Required | Notes |
+|---|---|---|
+| `TAVILY_API_KEY` | for web/news research | [app.tavily.com](https://app.tavily.com); a basic search = 1 credit (free tier: 1,000/month) |
+| `FEC_API_KEY` | for donations research | [api.data.gov signup](https://api.data.gov/signup) — free, 1,000 calls/hour |
+| `TAVILY_BASE_URL` / `FEC_BASE_URL` | no | endpoint overrides (proxies/tests) |
+| `FEC_DEMO` | no | set `1` to try the FEC API with `DEMO_KEY` (hard rate limits) |
+
+Missing keys don't break anything: the corresponding adapter is skipped and a
+`research.W001`/`research.W002` warning appears in `manage.py check`. FEC
+covers federal candidates only (state/local arrives with the elections
+phase). Topics researched per politician: positions, voting record,
+controversies, donations. Contract: [`specs/research.md`](../specs/research.md).
+
+Background execution uses Django's native `django.tasks` framework with a
+small in-process backend (`apps.core.tasks.InProcessBackend`): jobs run
+inside the web server process — no worker service needed for a single
+container. Durability note: run state lives in the `ResearchRun` table
+(survives restarts); task execution itself is best-effort in-process
+(see [`specs/core-tasks.md`](../specs/core-tasks.md)).

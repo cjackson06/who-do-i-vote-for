@@ -29,6 +29,8 @@ Goals of this modernization:
 | Models | **Raw OpenAI-compatible client**, role-based server config (`base_url` + `api_key` + `model` per role). Hosted: env-only, never exposed to users. Self-hosted: point at Ollama/vLLM/LiteLLM proxy/Gemini OpenAI-compat/OpenRouter |
 | Search | **Tavily** (web+news) + **FEC API** (donations) in v1, behind a pluggable source-adapter interface (YouTube, voting history, social later) |
 | Research | **Parallel agent swarm**: fan-out per candidate × per source → summarize w/ citations → **politician profiles cached in DB** to cut search costs |
+| Staff console | **apps/console** — HTMX+Tailwind at `/staff/` for research ops (dashboard, trigger-with-options, run monitor, curation, ingestion, cost explorer); **coexists with admin** (raw CRUD/auth); full-edit curation with **pinned edits** across regeneration; no live updates in 2.5 — run fragments carry SSE-reserved ids, Phase 3 streams into them ([phase 2.5](phase-2-5-staff-console.md)) |
+| Background execution | **django.tasks (Django 6 native)**: `@task` + pluggable backends; in-process ASGI backend in `apps/core` now (single container), durable DB/Redis backend later = settings-only swap. Jobs triggered from admin/web — no data-management CLI (decision at Phase 2 kickoff) |
 | Pipeline UX | **SSE step progress** (HTMX SSE extension), final structured result |
 | Users | **Anonymous by default + optional account** to save profile/results (claim-anonymous-session flow). Session-cookie auth, no JWT |
 | Billing | **Deferred** — entitlement hooks designed in now (plan tier field, limits interface) |
@@ -48,6 +50,7 @@ Goals of this modernization:
 │  apps/profiler   questionnaire/conversational onboarding                        │
 │  apps/analysis   AnalysisJob ──► pipeline runner (background asyncio task)      │
 │        │            steps persisted: research → match → recommend               │
+│  apps/console     staff console /staff/: dashboard, runs, profiles, costs       │
 │  apps/research   swarm orchestrator ──► SourceAdapter interface                 │
 │        │                                 ├─ TavilyAdapter (web/news)            │
 │        │                                 └─ FECAdapter (donations)              │
@@ -95,8 +98,9 @@ Goals of this modernization:
 |---|---|---|---|
 | 0 | [phase-0-foundation.md](phase-0-foundation.md) | Docs, tooling (cz, GHA), Django scaffold, Docker | done (GHA run pending first push) |
 | 1 | [phase-1-llm-core.md](phase-1-llm-core.md) | Model-agnostic LLM layer, role config, ModelCall log | done |
-| 2 | [phase-2-research-politicians.md](phase-2-research-politicians.md) | Source adapters, research swarm, politician cache | pending |
-| 3 | [phase-3-v1-cutover.md](phase-3-v1-cutover.md) | Analysis pipeline, SSE, HTMX frontend, delete ADK+React | pending |
+| 2 | [phase-2-research-politicians.md](phase-2-research-politicians.md) | Source adapters, research swarm, politician cache | done (live smoke verified 2026-09-28) |
+| 2.5 | [phase-2-5-staff-console.md](phase-2-5-staff-console.md) | Staff ops console at /staff/ (HTMX+Tailwind, coexists w/ admin): dashboard, triggers, runs, curation, ingestion, costs | pending — gated on Phase 2 PR approval |
+| 3 | [phase-3-v1-cutover.md](phase-3-v1-cutover.md) | Analysis pipeline, SSE, HTMX frontend, delete ADK+React | pending — pipeline runner builds on the django.tasks seam |
 | 4 | [phase-4-accounts-saves.md](phase-4-accounts-saves.md) | Accounts, claim flow, history, entitlement hooks | pending |
 | 5 | [phase-5-eval-harness.md](phase-5-eval-harness.md) | Golden datasets, LLM judge, CLI + staff dashboard | pending |
 | 6 | [phase-6-growth.md](phase-6-growth.md) | Swipe onboarding, more adapters, local elections, Stripe | pending |
